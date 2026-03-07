@@ -30,7 +30,9 @@ class EnsureSingleUserAuthenticated
 
         if ($user->role === 'trial' && $user->trial_ends_at && Carbon::parse($user->trial_ends_at)->isPast()) {
             Auth::logout();
-            return redirect()->route('login.form')->withErrors(['username' => 'Masa trial berakhir. Silakan hubungi admin.']);
+            return redirect()->route('login.form')->withErrors([
+                'username' => 'Masa trial Anda telah berakhir. Silakan lanjut ke paket berbayar untuk memperpanjang akses.',
+            ]);
         }
 
         return $next($request);
