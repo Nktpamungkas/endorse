@@ -336,7 +336,9 @@ class EndorsementController extends Controller
             return;
         }
         if ($endorsement->user_id !== $user->id && $user->role !== 'master') {
-            abort(403);
+            redirect()->route('endorsements.index')
+                ->withErrors(['access' => 'Data ini milik akun lain.'])
+                ->throwResponse();
         }
     }
 }
