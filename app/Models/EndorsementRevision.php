@@ -12,6 +12,7 @@ class EndorsementRevision extends Model
 
     protected $fillable = [
         'endorsement_id',
+        'user_id',
         'revision_date',
         'note',
         'uploaded_to_drive',

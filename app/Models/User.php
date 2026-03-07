@@ -6,6 +6,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Endorsement;
+use App\Models\EndorsementRevision;
 
 class User extends Authenticatable
 {
@@ -20,7 +23,11 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'username',
         'password',
+        'role',
+        'trial_ends_at',
+        'active',
     ];
 
     /**
@@ -43,6 +50,18 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'trial_ends_at' => 'date',
+            'active' => 'boolean',
         ];
+    }
+
+    public function endorsements(): HasMany
+    {
+        return $this->hasMany(Endorsement::class);
+    }
+
+    public function endorsementRevisions(): HasMany
+    {
+        return $this->hasMany(EndorsementRevision::class);
     }
 }

@@ -1,0 +1,106 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
+
+class UserManageController extends Controller
+{
+    public function index(): View
+    {
+        $this->authorizeMaster();
+        $users = User::orderByDesc('role')->orderBy('username')->get();
+
+        return view('users.index', compact('users'));
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $this->authorizeMaster();
+        $data = $request->validate([
+            'username' => ['required', 'string', 'max:50', 'unique:users,username'],
+            'password' => ['required', 'string', 'min:4'],
+            'trial_ends_at' => ['nullable', 'date'],
+        ]);
+
+        // Pastikan kolom email terisi unik agar tidak bentrok dengan constraint database.
+        $email = $request->input('email');
+        if (empty($email)) {
+            $email = $data['username'] . '@trial.local';
+        }
+
+        User::create([
+            'name' => $data['username'],
+            'email' => $email,
+            'username' => $data['username'],
+            'password' => Hash::make($data['password']),
+            'role' => 'trial',
+            'trial_ends_at' => $data['trial_ends_at'],
+            'active' => true,
+        ]);
+
+        return back()->with('success', 'User trial berhasil dibuat.');
+    }
+
+    public function update(Request $request, User $user): RedirectResponse
+    {
+        $this->authorizeMaster();
+        $data = $request->validate([
+            'trial_ends_at' => ['nullable', 'date'],
+            'active' => ['required', 'boolean'],
+            'password' => ['nullable', 'string', 'min:4'],
+        ]);
+
+        $update = [
+            'trial_ends_at' => $data['trial_ends_at'],
+            'active' => $data['active'],
+        ];
+
+        if (! empty($data['password'])) {
+            $update['password'] = Hash::make($data['password']);
+        }
+
+        $user->update($update);
+
+        return back()->with('success', 'User berhasil diupdate.');
+    }
+
+    public function destroy(User $user): RedirectResponse
+    {
+        $this->authorizeMaster();
+        if ($user->role === 'master') {
+            abort(403, 'Tidak boleh menghapus akun master.');
+        }
+
+        DB::transaction(function () use ($user) {
+            $endorsements = $user->endorsements()->get();
+
+            foreach ($endorsements as $endorsement) {
+                if ($endorsement->checkout_proof_path) {
+                    Storage::disk('public')->delete($endorsement->checkout_proof_path);
+                }
+            }
+
+            // Hapus data terkait user
+            $user->endorsementRevisions()->delete();
+            $user->endorsements()->delete();
+            $user->delete();
+        });
+
+        return back()->with('success', 'User dan seluruh datanya sudah dihapus.');
+    }
+
+    private function authorizeMaster(): void
+    {
+        if (! Auth::check() || Auth::user()->role !== 'master') {
+            abort(403);
+        }
+    }
+}

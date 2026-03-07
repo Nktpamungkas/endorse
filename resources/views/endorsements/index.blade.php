@@ -37,6 +37,9 @@
                 <button class="btn btn-primary w-100">Filter</button>
                 <a href="{{ route('endorsements.index') }}" class="btn btn-outline-secondary w-100">Reset</a>
             </div>
+            <div class="col-md-2 d-flex justify-content-end">
+                <a href="{{ route('endorsements.export', request()->query()) }}" class="btn btn-outline-dark w-100">Download CSV</a>
+            </div>
         </form>
     </div>
 

@@ -7,8 +7,10 @@ use App\Models\Endorsement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Illuminate\Validation\Rule;
 
 class EndorsementController extends Controller
 {
@@ -18,6 +20,7 @@ class EndorsementController extends Controller
     public function index(Request $request): View
     {
         $query = Endorsement::query()
+            ->where('user_id', Auth::id())
             ->orderByRaw('CASE WHEN deal_date IS NULL THEN 1 ELSE 0 END')
             ->orderByDesc('deal_date')
             ->orderByDesc('updated_at');
@@ -80,6 +83,7 @@ class EndorsementController extends Controller
     public function store(EndorsementRequest $request): RedirectResponse
     {
         $payload = $this->buildPayload($request);
+        $payload['user_id'] = Auth::id();
         $fingerprint = sha1(json_encode([
             'brand_name' => (string) ($payload['brand_name'] ?? ''),
             'campaign_name' => (string) ($payload['campaign_name'] ?? ''),
@@ -115,6 +119,7 @@ class EndorsementController extends Controller
      */
     public function show(Endorsement $endorsement): View
     {
+        abort_if($endorsement->user_id !== Auth::id(), 403);
         $endorsement->load('revisions');
 
         return view('endorsements.show', [
@@ -128,6 +133,7 @@ class EndorsementController extends Controller
      */
     public function edit(Endorsement $endorsement): View
     {
+        abort_if($endorsement->user_id !== Auth::id(), 403);
         return view('endorsements.edit', [
             'endorsement' => $endorsement,
             'statusOptions' => Endorsement::STATUS_OPTIONS,
@@ -143,6 +149,7 @@ class EndorsementController extends Controller
      */
     public function update(EndorsementRequest $request, Endorsement $endorsement): RedirectResponse
     {
+        abort_if($endorsement->user_id !== Auth::id(), 403);
         $payload = $this->buildPayload($request, $endorsement);
         $endorsement->update($payload);
 
@@ -154,6 +161,7 @@ class EndorsementController extends Controller
      */
     public function destroy(Endorsement $endorsement): RedirectResponse
     {
+        abort_if($endorsement->user_id !== Auth::id(), 403);
         if ($endorsement->checkout_proof_path) {
             Storage::disk('public')->delete($endorsement->checkout_proof_path);
         }
@@ -165,6 +173,7 @@ class EndorsementController extends Controller
 
     public function updateStatus(Request $request, Endorsement $endorsement): RedirectResponse
     {
+        abort_if($endorsement->user_id !== Auth::id(), 403);
         $data = $request->validate([
             'status' => ['required', Rule::in(array_keys(Endorsement::STATUS_OPTIONS))],
         ]);
@@ -174,6 +183,63 @@ class EndorsementController extends Controller
         ]);
 
         return back()->with('success', 'Status berhasil diupdate.');
+    }
+
+    public function export(Request $request)
+    {
+        $query = Endorsement::where('user_id', Auth::id())->orderByDesc('updated_at');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status'));
+        }
+
+        if ($request->filled('insight')) {
+            $insightFilter = (string) $request->string('insight');
+            if ($insightFilter === 'waiting') {
+                $query->whereNotNull('insight_due_at')->whereNull('insight_sent_at');
+            } elseif ($insightFilter === 'overdue') {
+                $query->whereDate('insight_due_at', '<', Carbon::today())->whereNull('insight_sent_at');
+            } elseif ($insightFilter === 'sent') {
+                $query->whereNotNull('insight_sent_at');
+            }
+        }
+
+        if ($request->filled('q')) {
+            $keyword = $request->string('q');
+            $query->where(function ($builder) use ($keyword): void {
+                $builder->where('brand_name', 'like', '%'.$keyword.'%')
+                    ->orWhere('campaign_name', 'like', '%'.$keyword.'%');
+            });
+        }
+
+        $rows = $query->get();
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=\"endorsements.csv\"',
+        ];
+        $columns = ['Brand', 'Campaign', 'Platform', 'Status', 'Posting', 'Insight Due', 'Payment', 'Fee', 'Reimburse', 'Modal Produk', 'Biaya Lain', 'Laba Bersih'];
+
+        return response()->stream(function () use ($rows, $columns) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, $columns);
+            foreach ($rows as $row) {
+                fputcsv($out, [
+                    $row->brand_name,
+                    $row->campaign_name,
+                    Endorsement::PLATFORM_OPTIONS[$row->platform] ?? $row->platform,
+                    Endorsement::STATUS_OPTIONS[$row->status] ?? $row->status,
+                    optional($row->posting_date)->format('Y-m-d'),
+                    optional($row->insight_due_at)->format('Y-m-d'),
+                    Endorsement::PAYMENT_STATUS_OPTIONS[$row->payment_status] ?? $row->payment_status,
+                    $row->fee_amount,
+                    $row->reimburse_amount,
+                    $row->product_cost,
+                    $row->other_cost,
+                    $row->net_profit,
+                ]);
+            }
+            fclose($out);
+        }, 200, $headers);
     }
 
     private function buildPayload(EndorsementRequest $request, ?Endorsement $endorsement = null): array

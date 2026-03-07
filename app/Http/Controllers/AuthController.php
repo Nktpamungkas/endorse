@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class AuthController extends Controller
 {
     public function showLoginForm(Request $request): View|RedirectResponse
     {
-        if ($request->session()->get(config('single_auth.session_key'), false)) {
+        if (Auth::check()) {
             return redirect()->route('dashboard');
         }
 
@@ -24,24 +28,31 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $expectedUsername = (string) config('single_auth.username');
-        $expectedPassword = (string) config('single_auth.password');
+        $user = User::where('username', $credentials['username'])->first();
 
-        if (! hash_equals($expectedUsername, $credentials['username']) || ! hash_equals($expectedPassword, $credentials['password'])) {
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             return back()->withErrors([
                 'username' => 'Username atau password salah.',
             ])->onlyInput('username');
         }
 
+        if (! $user->active) {
+            return back()->withErrors(['username' => 'Akun dinonaktifkan.'])->onlyInput('username');
+        }
+
+        if ($user->role === 'trial' && $user->trial_ends_at && Carbon::parse($user->trial_ends_at)->isPast()) {
+            return back()->withErrors(['username' => 'Masa trial berakhir. Silakan hubungi admin.'])->onlyInput('username');
+        }
+
+        Auth::login($user, true);
         $request->session()->regenerate();
-        $request->session()->put(config('single_auth.session_key'), true);
 
         return redirect()->intended(route('dashboard'));
     }
 
     public function logout(Request $request): RedirectResponse
     {
-        $request->session()->forget(config('single_auth.session_key'));
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

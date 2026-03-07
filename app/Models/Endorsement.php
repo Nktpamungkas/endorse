@@ -53,6 +53,7 @@ class Endorsement extends Model
     ];
 
     protected $fillable = [
+        'user_id',
         'brand_name',
         'campaign_name',
         'platform',

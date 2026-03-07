@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Endorsement;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -16,15 +17,17 @@ class DashboardController extends Controller
         }
 
         $statusCounts = Endorsement::query()
+            ->where('user_id', Auth::id())
             ->select('status', DB::raw('COUNT(*) as total'))
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $totalIncome = (float) Endorsement::query()->sum(DB::raw('fee_amount + reimburse_amount'));
-        $totalCost = (float) Endorsement::query()->sum(DB::raw('product_cost + other_cost'));
-        $waitingPayment = Endorsement::query()->where('payment_status', '!=', 'lunas')->count();
+        $totalIncome = (float) Endorsement::where('user_id', Auth::id())->sum(DB::raw('fee_amount + reimburse_amount'));
+        $totalCost = (float) Endorsement::where('user_id', Auth::id())->sum(DB::raw('product_cost + other_cost'));
+        $waitingPayment = Endorsement::where('user_id', Auth::id())->where('payment_status', '!=', 'lunas')->count();
 
         $selectedStatusItems = Endorsement::query()
+            ->where('user_id', Auth::id())
             ->where('status', $selectedStatus)
             ->orderByDesc('updated_at')
             ->limit(10)

@@ -244,10 +244,8 @@
     </style>
 </head>
 <body>
-@php($isLoggedIn = session(config('single_auth.session_key'), false))
-
 <div class="container py-4 main-shell">
-    @if($isLoggedIn)
+    @if(auth()->check())
         <nav class="navbar navbar-expand-lg rounded-4 px-3 mb-4 navbar-endorse">
             <a class="navbar-brand fw-bold" href="{{ route('dashboard') }}">Endorse Tracker</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topMenu">
@@ -261,11 +259,20 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('endorsements.*') ? 'active fw-semibold' : '' }}" href="{{ route('endorsements.index') }}">Data Endorse</a>
                     </li>
+                    <li class="nav-item">
+                        {{-- Selalu tampilkan bagi user yang sudah login; controller akan membatasi akses non-master --}}
+                        <a class="nav-link {{ request()->routeIs('users.*') ? 'active fw-semibold' : '' }}" href="{{ route('users.index') }}">Kelola User</a>
+                    </li>
                 </ul>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="btn btn-sm btn-outline-dark">Logout</button>
-                </form>
+                @if(auth()->check())
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-muted small">{{ auth()->user()->username }}</span>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button class="btn btn-sm btn-outline-dark">Logout</button>
+                        </form>
+                    </div>
+                @endif
             </div>
         </nav>
     @endif
