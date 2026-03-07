@@ -153,12 +153,21 @@ class EndorsementController extends Controller
     {
         $this->assertOwnership($endorsement);
         $payload = $this->buildPayload($request, $endorsement);
+        $original = $endorsement->getOriginal();
         $endorsement->fill($payload);
-        $dirty = array_keys($endorsement->getDirty());
+        $dirtyKeys = array_keys($endorsement->getDirty());
+        $changes = [];
+        foreach ($dirtyKeys as $key) {
+            $changes[$key] = [
+                'from' => $original[$key] ?? null,
+                'to' => $endorsement->{$key},
+            ];
+        }
         $endorsement->save();
         $this->logActivity($endorsement, 'update', [
             'status' => $endorsement->status,
-            'fields_changed' => $dirty,
+            'fields_changed' => $dirtyKeys,
+            'changes' => $changes,
         ]);
 
         return redirect()->route('endorsements.show', $endorsement)->with('success', 'Endorse berhasil diupdate.');

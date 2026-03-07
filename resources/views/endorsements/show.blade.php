@@ -145,9 +145,18 @@
                     <div>
                         <div class="fw-semibold text-capitalize">{{ str_replace('_', ' ', $log->action) }}</div>
                         @if($log->meta)
-                            <div class="text-muted">
+                            <div class="text-muted small">
                                 @foreach($log->meta as $k => $v)
-                                    <span class="me-2">{{ $k }}: <strong>{{ is_array($v) ? json_encode($v) : $v }}</strong></span>
+                                    @if($k === 'changes' && is_array($v))
+                                        <div class="mt-1">Perubahan:</div>
+                                        <ul class="mb-1 ps-3">
+                                            @foreach($v as $field => $change)
+                                                <li>{{ $field }}: <strong>{{ $change['from'] === null || $change['from'] === '' ? '-' : $change['from'] }}</strong> → <strong>{{ $change['to'] === null || $change['to'] === '' ? '-' : $change['to'] }}</strong></li>
+                                            @endforeach
+                                        </ul>
+                                    @else
+                                        <div class="me-2">{{ $k }}: <strong>{{ is_array($v) ? json_encode($v) : $v }}</strong></div>
+                                    @endif
                                 @endforeach
                             </div>
                         @endif
