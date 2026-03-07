@@ -9,6 +9,11 @@
         <a href="{{ route('endorsements.create') }}" class="btn btn-dark">+ Tambah Endorse</a>
     </div>
 
+    <div class="card card-soft p-3 mb-3">
+        <h2 class="h6 fw-bold mb-2">Tren Pendapatan vs Modal</h2>
+        <canvas id="incomeChart" height="140"></canvas>
+    </div>
+
     <div class="card card-soft p-3 mb-3" style="background: linear-gradient(120deg, #e9f4ff, #fff6e8);">
         <div class="small text-muted-soft">Laba Bersih Total</div>
         <div class="h4 fw-bold mb-0 {{ $netProfit >= 0 ? 'text-success' : 'text-danger' }}">
@@ -102,123 +107,125 @@
         </div>
     </div>
 
-<div class="card card-soft p-3 mt-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <h2 class="h6 fw-bold mb-0">
-                Detail Status: {{ $statusOptions[$selectedStatus] ?? $selectedStatus }}
-            </h2>
-            <a href="{{ route('endorsements.index', ['status' => $selectedStatus]) }}" class="btn btn-sm btn-outline-dark">Lihat Semua</a>
-        </div>
+    <div class="card card-soft p-3 mt-3">
+        <div class="row g-3">
+            <div class="col-lg-12">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="h6 fw-bold mb-0">Detail Status: {{ $statusOptions[$selectedStatus] ?? $selectedStatus }}</h2>
+                    <a href="{{ route('endorsements.index', ['status' => $selectedStatus]) }}" class="btn btn-sm btn-outline-dark">Lihat Semua</a>
+                </div>
 
-        <div class="table-responsive desktop-table">
-            <table class="table align-middle mb-0">
-                <thead>
-                <tr>
-                    <th>Brand</th>
-                    <th>Platform</th>
-                    <th>Posting</th>
-                    <th>Insight</th>
-                    <th>Payment</th>
-                    <th class="text-end">Laba Bersih</th>
-                    <th class="text-end">Aksi</th>
-                </tr>
-                </thead>
-                <tbody>
-                @forelse($selectedStatusItems as $item)
-                    <tr>
-                        <td>
+                <div class="table-responsive desktop-table">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th>Brand</th>
+                            <th>Platform</th>
+                            <th>Posting</th>
+                            <th>Insight</th>
+                            <th>Payment</th>
+                            <th class="text-end">Laba Bersih</th>
+                            <th class="text-end">Aksi</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @forelse($selectedStatusItems as $item)
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">{{ $item->brand_name }}</div>
+                                    @if($item->campaign_name)
+                                        <div class="small text-muted-soft">{{ $item->campaign_name }}</div>
+                                    @endif
+                                </td>
+                                <td>{{ \App\Models\Endorsement::PLATFORM_OPTIONS[$item->platform] ?? $item->platform }}</td>
+                                <td>{{ optional($item->posting_date)->format('d/m/Y') ?? '-' }}</td>
+                                <td>
+                                    @if($item->insight_sent_at)
+                                        <span class="text-success">Terkirim</span>
+                                    @elseif($item->insight_due_at)
+                                        <span class="{{ $item->insight_due_at->isPast() ? 'text-danger fw-semibold' : '' }}">
+                                            {{ $item->insight_due_at->format('d/m/Y') }}
+                                        </span>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td>{{ \App\Models\Endorsement::PAYMENT_STATUS_OPTIONS[$item->payment_status] ?? $item->payment_status }}</td>
+                                <td class="text-end {{ $item->net_profit >= 0 ? 'text-success' : 'text-danger' }}">
+                                    Rp {{ number_format($item->net_profit, 0, ',', '.') }}
+                                </td>
+                                <td class="text-end">
+                                    <form method="POST" action="{{ route('endorsements.status.update', $item) }}" class="d-inline-flex align-items-center gap-1 flex-wrap justify-content-end">
+                                        @csrf
+                                        <select name="status" class="form-select form-select-sm" style="max-width: 180px">
+                                            @foreach($statusOptions as $key => $label)
+                                                <option value="{{ $key }}" @selected($item->status === $key)>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button class="btn btn-sm btn-dark">Update</button>
+                                        <a href="{{ route('endorsements.show', $item) }}" class="btn btn-sm btn-outline-primary">Detail</a>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center text-muted-soft py-3">Tidak ada job di status ini.</td>
+                            </tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mobile-card-list">
+                    @forelse($selectedStatusItems as $item)
+                        <div class="mobile-endorse-card">
                             <div class="fw-semibold">{{ $item->brand_name }}</div>
                             @if($item->campaign_name)
                                 <div class="small text-muted-soft">{{ $item->campaign_name }}</div>
                             @endif
-                        </td>
-                        <td>{{ \App\Models\Endorsement::PLATFORM_OPTIONS[$item->platform] ?? $item->platform }}</td>
-                        <td>{{ optional($item->posting_date)->format('d/m/Y') ?? '-' }}</td>
-                        <td>
-                            @if($item->insight_sent_at)
-                                <span class="text-success">Terkirim</span>
-                            @elseif($item->insight_due_at)
-                                <span class="{{ $item->insight_due_at->isPast() ? 'text-danger fw-semibold' : '' }}">
-                                    {{ $item->insight_due_at->format('d/m/Y') }}
-                                </span>
-                            @else
-                                -
-                            @endif
-                        </td>
-                        <td>{{ \App\Models\Endorsement::PAYMENT_STATUS_OPTIONS[$item->payment_status] ?? $item->payment_status }}</td>
-                        <td class="text-end {{ $item->net_profit >= 0 ? 'text-success' : 'text-danger' }}">
-                            Rp {{ number_format($item->net_profit, 0, ',', '.') }}
-                        </td>
-                        <td class="text-end">
-                            <form method="POST" action="{{ route('endorsements.status.update', $item) }}" class="d-inline-flex align-items-center gap-1 flex-wrap justify-content-end">
-                                @csrf
-                                <select name="status" class="form-select form-select-sm" style="max-width: 180px">
-                                    @foreach($statusOptions as $key => $label)
-                                        <option value="{{ $key }}" @selected($item->status === $key)>{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                                <button class="btn btn-sm btn-dark">Update</button>
-                                <a href="{{ route('endorsements.show', $item) }}" class="btn btn-sm btn-outline-primary">Detail</a>
-                            </form>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="text-center text-muted-soft py-3">Tidak ada job di status ini.</td>
-                    </tr>
-                @endforelse
-                </tbody>
-            </table>
-        </div>
 
-        <div class="mobile-card-list">
-            @forelse($selectedStatusItems as $item)
-                <div class="mobile-endorse-card">
-                    <div class="fw-semibold">{{ $item->brand_name }}</div>
-                    @if($item->campaign_name)
-                        <div class="small text-muted-soft">{{ $item->campaign_name }}</div>
-                    @endif
+                            <div class="mobile-endorse-grid">
+                                <div><span class="text-muted-soft">Platform</span><br>{{ \App\Models\Endorsement::PLATFORM_OPTIONS[$item->platform] ?? $item->platform }}</div>
+                                <div><span class="text-muted-soft">Payment</span><br>{{ \App\Models\Endorsement::PAYMENT_STATUS_OPTIONS[$item->payment_status] ?? $item->payment_status }}</div>
+                                <div><span class="text-muted-soft">Posting</span><br>{{ optional($item->posting_date)->format('d/m/Y') ?? '-' }}</div>
+                                <div>
+                                    <span class="text-muted-soft">Insight</span><br>
+                                    @if($item->insight_sent_at)
+                                        <span class="text-success">Terkirim</span>
+                                    @elseif($item->insight_due_at)
+                                        <span class="{{ $item->insight_due_at->isPast() ? 'text-danger fw-semibold' : '' }}">
+                                            {{ $item->insight_due_at->format('d/m/Y') }}
+                                        </span>
+                                    @else
+                                        -
+                                    @endif
+                                </div>
+                            </div>
 
-                    <div class="mobile-endorse-grid">
-                        <div><span class="text-muted-soft">Platform</span><br>{{ \App\Models\Endorsement::PLATFORM_OPTIONS[$item->platform] ?? $item->platform }}</div>
-                        <div><span class="text-muted-soft">Payment</span><br>{{ \App\Models\Endorsement::PAYMENT_STATUS_OPTIONS[$item->payment_status] ?? $item->payment_status }}</div>
-                        <div><span class="text-muted-soft">Posting</span><br>{{ optional($item->posting_date)->format('d/m/Y') ?? '-' }}</div>
-                        <div>
-                            <span class="text-muted-soft">Insight</span><br>
-                            @if($item->insight_sent_at)
-                                <span class="text-success">Terkirim</span>
-                            @elseif($item->insight_due_at)
-                                <span class="{{ $item->insight_due_at->isPast() ? 'text-danger fw-semibold' : '' }}">
-                                    {{ $item->insight_due_at->format('d/m/Y') }}
-                                </span>
-                            @else
-                                -
-                            @endif
+                            <div class="mt-2 fw-semibold {{ $item->net_profit >= 0 ? 'text-success' : 'text-danger' }}">
+                                Laba Bersih: Rp {{ number_format($item->net_profit, 0, ',', '.') }}
+                            </div>
+
+                            <div class="mobile-endorse-actions">
+                                <form method="POST" action="{{ route('endorsements.status.update', $item) }}" class="d-grid gap-2">
+                                    @csrf
+                                    <select name="status" class="form-select form-select-sm">
+                                        @foreach($statusOptions as $key => $label)
+                                            <option value="{{ $key }}" @selected($item->status === $key)>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button class="btn btn-dark btn-sm">Update Status</button>
+                                </form>
+                                <a href="{{ route('endorsements.show', $item) }}" class="btn btn-outline-primary btn-sm">Detail</a>
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="mt-2 fw-semibold {{ $item->net_profit >= 0 ? 'text-success' : 'text-danger' }}">
-                        Laba Bersih: Rp {{ number_format($item->net_profit, 0, ',', '.') }}
-                    </div>
-
-                    <div class="mobile-endorse-actions">
-                        <form method="POST" action="{{ route('endorsements.status.update', $item) }}" class="d-grid gap-2">
-                            @csrf
-                            <select name="status" class="form-select form-select-sm">
-                                @foreach($statusOptions as $key => $label)
-                                    <option value="{{ $key }}" @selected($item->status === $key)>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                            <button class="btn btn-dark btn-sm">Update Status</button>
-                        </form>
-                        <a href="{{ route('endorsements.show', $item) }}" class="btn btn-outline-primary btn-sm">Detail</a>
-                    </div>
+                    @empty
+                        <div class="text-muted-soft small">Tidak ada job di status ini.</div>
+                    @endforelse
                 </div>
-            @empty
-                <div class="text-muted-soft small">Tidak ada job di status ini.</div>
-            @endforelse
+            </div>
+        </div>
     </div>
-</div>
 
 {{-- Floating WhatsApp contact --}}
 <a href="https://wa.me/6285156637499?text=Halo%20kak%2C%20saya%20ingin%20bertanya%20tentang%20Endorse%20Tracker.%20Mohon%20info%20lebih%20lanjut."
@@ -234,6 +241,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
     (() => {
         const steps = Array.from(document.querySelectorAll('#tourSteps .tour-step'));
@@ -256,6 +264,42 @@
         if (!localStorage.getItem(storageKey)) {
             const autoTour = new bootstrap.Modal(document.getElementById('tourModal'));
             autoTour.show();
+        }
+
+        // Chart income vs cost
+        const ctx = document.getElementById('incomeChart');
+        if (ctx) {
+            const labels = @json($monthlyStats->pluck('month_key')->map(fn($m) => \Carbon\Carbon::parse($m)->format('M Y')));
+            const income = @json($monthlyStats->pluck('income')->map(fn($v) => (float) $v));
+            const cost = @json($monthlyStats->pluck('cost')->map(fn($v) => (float) $v));
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        {label: 'Pendapatan', data: income, backgroundColor: '#0f4c81'},
+                        {label: 'Modal', data: cost, backgroundColor: '#f39c12'},
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: {font: {size: 11}, color: '#102544'}
+                        }
+                    },
+                    scales: {
+                        x: {ticks: {color: '#5c6b7a'}},
+                        y: {
+                            ticks: {
+                                color: '#5c6b7a',
+                                callback: v => 'Rp ' + new Intl.NumberFormat('id-ID').format(v)
+                            },
+                            grid: {color: 'rgba(0,0,0,0.05)'}
+                        }
+                    }
+                }
+            });
         }
     })();
 </script>

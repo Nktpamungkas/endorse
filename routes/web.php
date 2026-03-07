@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', LandingController::class)->name('landing');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login.form');
-Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login.attempt');
 
 Route::middleware('single.auth')->group(function (): void {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
@@ -27,4 +27,6 @@ Route::middleware('single.auth')->group(function (): void {
     Route::post('/users/{user}', [UserManageController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserManageController::class, 'destroy'])->name('users.destroy');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/profile/password', [AuthController::class, 'showPasswordForm'])->name('password.form');
+    Route::post('/profile/password', [AuthController::class, 'updatePassword'])->name('password.update');
 });

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\EndorsementRequest;
 use App\Models\Endorsement;
+use App\Models\EndorsementActivity;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -107,7 +108,8 @@ class EndorsementController extends Controller
             return redirect()->route('endorsements.index')->with('success', 'Data sudah tersimpan. Submit ganda diabaikan.');
         }
 
-        Endorsement::create($payload);
+        $endorsement = Endorsement::create($payload);
+        $this->logActivity($endorsement, 'create', ['status' => $endorsement->status]);
         $request->session()->put('endorsement_store_fingerprint', $fingerprint);
         $request->session()->put('endorsement_store_fingerprint_at', time());
 
@@ -119,7 +121,7 @@ class EndorsementController extends Controller
      */
     public function show(Endorsement $endorsement): View
     {
-        abort_if($endorsement->user_id !== Auth::id(), 403);
+        $this->assertOwnership($endorsement);
         $endorsement->load('revisions');
 
         return view('endorsements.show', [
@@ -133,7 +135,7 @@ class EndorsementController extends Controller
      */
     public function edit(Endorsement $endorsement): View
     {
-        abort_if($endorsement->user_id !== Auth::id(), 403);
+        $this->assertOwnership($endorsement);
         return view('endorsements.edit', [
             'endorsement' => $endorsement,
             'statusOptions' => Endorsement::STATUS_OPTIONS,
@@ -149,9 +151,10 @@ class EndorsementController extends Controller
      */
     public function update(EndorsementRequest $request, Endorsement $endorsement): RedirectResponse
     {
-        abort_if($endorsement->user_id !== Auth::id(), 403);
+        $this->assertOwnership($endorsement);
         $payload = $this->buildPayload($request, $endorsement);
         $endorsement->update($payload);
+        $this->logActivity($endorsement, 'update', ['status' => $endorsement->status, 'fields_changed' => array_keys($endorsement->getChanges())]);
 
         return redirect()->route('endorsements.show', $endorsement)->with('success', 'Endorse berhasil diupdate.');
     }
@@ -161,7 +164,8 @@ class EndorsementController extends Controller
      */
     public function destroy(Endorsement $endorsement): RedirectResponse
     {
-        abort_if($endorsement->user_id !== Auth::id(), 403);
+        $this->assertOwnership($endorsement);
+        $this->logActivity($endorsement, 'delete', ['status' => $endorsement->status]);
         if ($endorsement->checkout_proof_path) {
             Storage::disk('public')->delete($endorsement->checkout_proof_path);
         }
@@ -173,20 +177,16 @@ class EndorsementController extends Controller
 
     public function updateStatus(Request $request, Endorsement $endorsement): RedirectResponse
     {
-        $user = Auth::user();
-        if ($endorsement->user_id === null) {
-            // Rekam lama tanpa user_id: ikatkan ke user yang sedang login
-            $endorsement->update(['user_id' => $user->id]);
-        } elseif ($endorsement->user_id !== $user->id && $user->role !== 'master') {
-            return back()->withErrors(['status' => 'Tidak diizinkan memperbarui status job ini.']);
-        }
+        $this->assertOwnership($endorsement);
         $data = $request->validate([
             'status' => ['required', Rule::in(array_keys(Endorsement::STATUS_OPTIONS))],
         ]);
 
+        $old = $endorsement->status;
         $endorsement->update([
             'status' => $data['status'],
         ]);
+        $this->logActivity($endorsement, 'status_change', ['from' => $old, 'to' => $data['status']]);
 
         return back()->with('success', 'Status berhasil diupdate.');
     }
@@ -302,5 +302,27 @@ class EndorsementController extends Controller
         }
 
         return $payload;
+    }
+
+    private function logActivity(Endorsement $endorsement, string $action, array $meta = []): void
+    {
+        EndorsementActivity::create([
+            'endorsement_id' => $endorsement->id,
+            'user_id' => Auth::id(),
+            'action' => $action,
+            'meta' => $meta,
+        ]);
+    }
+
+    private function assertOwnership(Endorsement $endorsement): void
+    {
+        $user = Auth::user();
+        if ($endorsement->user_id === null) {
+            $endorsement->update(['user_id' => $user->id]);
+            return;
+        }
+        if ($endorsement->user_id !== $user->id && $user->role !== 'master') {
+            abort(403);
+        }
     }
 }

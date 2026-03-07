@@ -135,4 +135,28 @@
             </div>
         </div>
     </div>
+
+    <div class="card card-soft p-3 mt-3">
+        <h2 class="h6 fw-bold mb-2">Log Aktivitas</h2>
+        <div class="d-grid gap-2 small">
+            @php $logs = $endorsement->activities()->limit(15)->get(); @endphp
+            @forelse($logs as $log)
+                <div class="border rounded-3 p-2 d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="fw-semibold text-capitalize">{{ str_replace('_', ' ', $log->action) }}</div>
+                        @if($log->meta)
+                            <div class="text-muted">
+                                @foreach($log->meta as $k => $v)
+                                    <span class="me-2">{{ $k }}: <strong>{{ is_array($v) ? json_encode($v) : $v }}</strong></span>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                    <div class="text-muted">{{ $log->created_at->format('d/m/Y H:i') }}</div>
+                </div>
+            @empty
+                <div class="text-muted-soft">Belum ada aktivitas.</div>
+            @endforelse
+        </div>
+    </div>
 @endsection

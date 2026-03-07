@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use App\Models\EndorsementActivity;
 
 class Endorsement extends Model
 {
@@ -113,6 +114,11 @@ class Endorsement extends Model
     public function revisions(): HasMany
     {
         return $this->hasMany(EndorsementRevision::class)->orderByDesc('revision_date');
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(EndorsementActivity::class)->latest();
     }
 
     public function getTotalIncomeAttribute(): float

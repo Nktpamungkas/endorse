@@ -33,6 +33,15 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
+        $monthlyStats = Endorsement::query()
+            ->where('user_id', Auth::id())
+            ->selectRaw("FORMAT(created_at, 'yyyy-MM-01') as month_key")
+            ->selectRaw('SUM(fee_amount + reimburse_amount) as income')
+            ->selectRaw('SUM(product_cost + other_cost) as cost')
+            ->groupByRaw("FORMAT(created_at, 'yyyy-MM-01')")
+            ->orderByRaw("FORMAT(created_at, 'yyyy-MM-01')")
+            ->get();
+
         return view('dashboard', [
             'statusCounts' => $statusCounts,
             'totalIncome' => $totalIncome,
@@ -42,6 +51,7 @@ class DashboardController extends Controller
             'selectedStatus' => $selectedStatus,
             'selectedStatusItems' => $selectedStatusItems,
             'statusOptions' => Endorsement::STATUS_OPTIONS,
+            'monthlyStats' => $monthlyStats,
         ]);
     }
 }
