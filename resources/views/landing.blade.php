@@ -183,10 +183,11 @@
             <div class="card-soft p-4 h-100">
                 <h5 class="fw-bold mb-3">Cara mulai</h5>
                 <ol class="text-muted mb-3">
-                    <li>Login atau buat akun trial (User1/User2/User3) lewat akun master.</li>
-                    <li>Tambah endorse: isi detail brand, status, keuangan.</li>
-                    <li>Update status dan insight due seiring progress.</li>
-                    <li>Export laporan atau hapus data trial bila selesai.</li>
+                    <li>Pilih paket (mingguan/bulanan) atau chat admin untuk minta persetujuan pembuatan akun trial.</li>
+                    <li>Admin mengaktifkan akun & mengirimkan akses login.</li>
+                    <li>Login, lalu tambah endorse: isi brand/campaign, status, dan data keuangan.</li>
+                    <li>Update status, insight due, dan pembayaran sesuai progres.</li>
+                    <li>Export laporan ke Excel atau hapus data trial setelah selesai.</li>
                 </ol>
                 <a class="btn btn-dark" href="{{ route('login.form') }}">Masuk & Mulai</a>
             </div>
@@ -197,5 +198,22 @@
         © {{ date('Y') }} Endorse Tracker. Semua harga dalam IDR.
     </div>
 </div>
+
+{{-- Floating WhatsApp contact on landing --}}
+<a href="https://wa.me/6285156637499?text=Halo%20kak%2C%20saya%20ingin%20bertanya%20tentang%20Endorse%20Tracker.%20Mohon%20info%20lebih%20lanjut."
+   target="_blank" rel="noopener"
+   style="position: fixed; right: 18px; bottom: 18px; z-index: 1050; text-decoration: none;">
+    <div style="background:#25D366; color:white; border-radius:999px; display:flex; align-items:center; gap:10px; padding:10px 14px; box-shadow:0 12px 30px rgba(0,0,0,0.18); min-width: 160px; justify-content:center;">
+        <div style="background:rgba(255,255,255,0.18); border-radius:50%; width:42px; height:42px; display:flex; align-items:center; justify-content:center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 21l1.65-3.8a9 9 0 111.6 1.6L3 21z"></path>
+                <path d="M8.5 9.5a5 5 0 007 7"></path>
+            </svg>
+        </div>
+        <div style="line-height:1.2; font-weight:700; font-size:0.95rem;">
+            Chat Admin<br><span style="font-weight:400; font-size:0.85rem;">Tanya paket / trial</span>
+        </div>
+    </div>
+</a>
 </body>
 </html>

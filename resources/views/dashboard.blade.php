@@ -59,7 +59,7 @@
         </div>
     </div>
 
-    <div class="card card-soft p-3 mt-3">
+<div class="card card-soft p-3 mt-3">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <h2 class="h6 fw-bold mb-0">
                 Detail Status: {{ $statusOptions[$selectedStatus] ?? $selectedStatus }}
@@ -174,6 +174,18 @@
             @empty
                 <div class="text-muted-soft small">Tidak ada job di status ini.</div>
             @endforelse
-        </div>
     </div>
+</div>
+
+{{-- Floating WhatsApp contact --}}
+<a href="https://wa.me/6285156637499?text=Halo%20kak%2C%20saya%20ingin%20bertanya%20tentang%20Endorse%20Tracker.%20Mohon%20info%20lebih%20lanjut."
+   target="_blank" rel="noopener"
+   style="position: fixed; right: 18px; bottom: 18px; z-index: 1050; text-decoration: none;">
+    <div style="background:#25D366; color:white; border-radius:50%; width:56px; height:56px; display:flex; align-items:center; justify-content:center; box-shadow:0 12px 30px rgba(0,0,0,0.18);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 21l1.65-3.8a9 9 0 111.6 1.6L3 21z"></path>
+            <path d="M8.5 9.5a5 5 0 007 7"></path>
+        </svg>
+    </div>
+</a>
 @endsection
