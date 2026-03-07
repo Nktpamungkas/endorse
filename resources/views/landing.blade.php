@@ -140,9 +140,9 @@
                         <li class="mb-2"><span class="check">✔</span> Notasi rupiah & perhitungan laba</li>
                         <li class="mb-2"><span class="check">✔</span> Manajemen status & insight due</li>
                     </ul>
-                    <a href="https://wa.me/6285156637499?text=Halo%2C%20saya%20ingin%20paket%20Mingguan%20%28Rp15.000%29%20Endorse%20Tracker.%20Mohon%20info%20pembayaran%20dan%20aksesnya."
-                       class="btn btn-outline-dark w-100"
-                       target="_blank" rel="noopener">Pilih Paket Mingguan</a>
+            <a href="https://wa.me/6289629571328?text=Halo%2C%20saya%20ingin%20paket%20Mingguan%20%28Rp15.000%29%20Endorse%20Tracker.%20Mohon%20info%20pembayaran%20dan%20aksesnya."
+               class="btn btn-outline-dark w-100"
+               target="_blank" rel="noopener">Pilih Paket Mingguan</a>
                 </div>
             </div>
             <div class="col-md-4">
@@ -155,7 +155,7 @@
                         <li class="mb-2"><span class="check">✔</span> Riwayat revisi & draft terarsip</li>
                         <li class="mb-2"><span class="check">✔</span> Dukungan prioritas via admin</li>
                     </ul>
-                    <a href="https://wa.me/6285156637499?text=Halo%2C%20saya%20ingin%20paket%20Bulanan%20%28Rp30.000%29%20Endorse%20Tracker.%20Mohon%20info%20pembayaran%20dan%20aksesnya."
+                    <a href="https://wa.me/6289629571328?text=Halo%2C%20saya%20ingin%20paket%20Bulanan%20%28Rp30.000%29%20Endorse%20Tracker.%20Mohon%20info%20pembayaran%20dan%20aksesnya."
                        class="btn btn-dark w-100"
                        target="_blank" rel="noopener">Pilih Paket Bulanan</a>
                 </div>
@@ -199,7 +199,7 @@
 </div>
 
 {{-- Floating WhatsApp contact on landing --}}
-<a href="https://wa.me/6285156637499?text=Halo%20kak%2C%20saya%20ingin%20bertanya%20tentang%20Endorse%20Tracker.%20Mohon%20info%20lebih%20lanjut."
+<a href="https://wa.me/6289629571328?text=Halo%20kak%2C%20saya%20ingin%20bertanya%20tentang%20Endorse%20Tracker.%20Mohon%20info%20lebih%20lanjut."
    target="_blank" rel="noopener"
    style="position: fixed; right: 18px; bottom: 18px; z-index: 1050; text-decoration: none;">
     <div style="background:#25D366; color:white; border-radius:999px; display:flex; align-items:center; gap:10px; padding:10px 14px; box-shadow:0 12px 30px rgba(0,0,0,0.18); min-width: 160px; justify-content:center;">
