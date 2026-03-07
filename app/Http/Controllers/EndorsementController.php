@@ -331,11 +331,15 @@ class EndorsementController extends Controller
     private function assertOwnership(Endorsement $endorsement): void
     {
         $user = Auth::user();
-        if ($endorsement->user_id === null) {
-            $endorsement->update(['user_id' => $user->id]);
+        $ownerId = $endorsement->user_id;
+        $currentId = $user->id;
+
+        if ($ownerId === null) {
+            $endorsement->update(['user_id' => $currentId]);
             return;
         }
-        if ($endorsement->user_id !== $user->id && $user->role !== 'master') {
+
+        if ((int) $ownerId !== (int) $currentId && $user->role !== 'master') {
             redirect()->route('endorsements.index')
                 ->withErrors(['access' => 'Data ini milik akun lain.'])
                 ->throwResponse();
