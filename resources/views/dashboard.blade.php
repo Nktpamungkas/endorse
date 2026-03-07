@@ -16,6 +16,49 @@
         </div>
     </div>
 
+    {{-- Tour Modal --}}
+    <div class="modal fade" id="tourModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Quick Tour Endorse Tracker</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="tourSteps">
+                        <div class="tour-step">
+                            <h6 class="fw-bold">1. Pilih paket / minta trial</h6>
+                            <p class="text-muted mb-0">Tentukan paket mingguan/bulanan atau hubungi admin untuk aktivasi akun trial.</p>
+                        </div>
+                        <div class="tour-step d-none">
+                            <h6 class="fw-bold">2. Tambah endorse</h6>
+                            <p class="text-muted mb-0">Klik <strong>+ Tambah Endorse</strong>, isi brand/campaign, status awal, serta detail keuangan.</p>
+                        </div>
+                        <div class="tour-step d-none">
+                            <h6 class="fw-bold">3. Update status & insight</h6>
+                            <p class="text-muted mb-0">Gunakan tombol <strong>Update Status</strong> atau halaman detail untuk memindahkan fase (Draft, Revisi, Posting, Insight, Payment).</p>
+                        </div>
+                        <div class="tour-step d-none">
+                            <h6 class="fw-bold">4. Catat keuangan</h6>
+                            <p class="text-muted mb-0">Isi fee, reimburse, modal produk, dan biaya lain. Laba bersih dihitung otomatis di dashboard.</p>
+                        </div>
+                        <div class="tour-step d-none">
+                            <h6 class="fw-bold">5. Export & bereskan trial</h6>
+                            <p class="text-muted mb-0">Export laporan ke Excel dari Data Endorse. Akun master bisa hapus data user trial bila selesai.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button class="btn btn-outline-secondary" id="tourPrev">Sebelumnya</button>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Tutup</button>
+                        <button class="btn btn-dark" id="tourNext">Berikutnya</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <div class="card card-soft p-3">
@@ -189,3 +232,31 @@
     </div>
 </a>
 @endsection
+
+@push('scripts')
+<script>
+    (() => {
+        const steps = Array.from(document.querySelectorAll('#tourSteps .tour-step'));
+        let idx = 0;
+        const showStep = () => {
+            steps.forEach((el, i) => el.classList.toggle('d-none', i !== idx));
+            document.getElementById('tourPrev').disabled = idx === 0;
+            document.getElementById('tourNext').textContent = idx === steps.length - 1 ? 'Selesai' : 'Berikutnya';
+        };
+        document.getElementById('tourPrev').addEventListener('click', () => { if (idx > 0) { idx--; showStep(); }});
+        document.getElementById('tourNext').addEventListener('click', () => {
+            if (idx < steps.length - 1) { idx++; showStep(); }
+            else { bootstrap.Modal.getInstance(document.getElementById('tourModal')).hide(); }
+        });
+        showStep();
+        const storageKey = 'endorse_tour_seen_v1';
+        document.getElementById('tourModal').addEventListener('hidden.bs.modal', () => {
+            localStorage.setItem(storageKey, '1');
+        });
+        if (!localStorage.getItem(storageKey)) {
+            const autoTour = new bootstrap.Modal(document.getElementById('tourModal'));
+            autoTour.show();
+        }
+    })();
+</script>
+@endpush

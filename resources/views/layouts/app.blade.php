@@ -266,6 +266,7 @@
                 </ul>
                 @if(auth()->check())
                     <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-outline-dark" type="button" data-bs-toggle="modal" data-bs-target="#tourModal">Tour</button>
                         <span class="text-muted small">{{ auth()->user()->username }}</span>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
