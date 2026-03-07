@@ -152,7 +152,6 @@
                     <p class="text-muted">Lebih hemat untuk penggunaan rutin produksi konten.</p>
                     <ul class="list-unstyled mb-4">
                         <li class="mb-2"><span class="check">✔</span> Semua di paket mingguan</li>
-                        <li class="mb-2"><span class="check">✔</span> Kelola user trial (User1-User3)</li>
                         <li class="mb-2"><span class="check">✔</span> Riwayat revisi & draft terarsip</li>
                         <li class="mb-2"><span class="check">✔</span> Dukungan prioritas via admin</li>
                     </ul>
