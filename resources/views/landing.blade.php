@@ -40,6 +40,12 @@
             border-radius: 18px;
             box-shadow: 0 16px 40px rgba(16, 37, 68, 0.08);
             background: #fff;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+        .card-soft:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 22px 55px rgba(16, 37, 68, 0.12);
+            border-color: rgba(16, 37, 68, 0.18);
         }
         .pricing-card {
             border: 1px solid rgba(16, 37, 68, 0.12);
@@ -48,10 +54,20 @@
             background: #ffffff;
             height: 100%;
             position: relative;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
         }
         .pricing-card.popular {
             border-color: var(--primary);
             box-shadow: 0 18px 45px rgba(15, 76, 129, 0.18);
+        }
+        .pricing-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 26px 70px rgba(15, 76, 129, 0.20);
+            border-color: var(--primary);
+        }
+        .pricing-card.popular:hover {
+            box-shadow: 0 30px 80px rgba(15, 76, 129, 0.26);
+            background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
         }
         .check {
             color: #198754;
@@ -65,6 +81,63 @@
             padding: 0.85rem 1.35rem;
             font-weight: 700;
             border-radius: 12px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        .cta-btn.btn-dark:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 36px rgba(15, 76, 129, 0.22);
+            background: #0c3f6c;
+            border-color: #0c3f6c;
+        }
+        .cta-btn.btn-outline-dark:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 32px rgba(16, 37, 68, 0.15);
+            background: #132743;
+            color: #fff;
+            border-color: #132743;
+        }
+        .navbar-brand {
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+        .navbar-brand:hover {
+            color: #0c3f6c;
+            transform: translateY(-1px);
+        }
+        .floating-wa {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 1050;
+            text-decoration: none;
+            transition: transform 0.22s ease, filter 0.22s ease;
+        }
+        .floating-wa:hover {
+            transform: translateY(-4px);
+            filter: brightness(1.03);
+        }
+        .floating-wa:active {
+            transform: translateY(-1px);
+        }
+        .floating-wa-chip {
+            background: #25D366;
+            color: white;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+            min-width: 160px;
+            justify-content: center;
+        }
+        .floating-wa-icon {
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         @media (max-width: 767.98px) {
             .hero { padding: 56px 0 40px; }
@@ -200,10 +273,9 @@
 
 {{-- Floating WhatsApp contact on landing --}}
 <a href="https://wa.me/6289629571328?text=Halo%20kak%2C%20saya%20ingin%20bertanya%20tentang%20Endorse%20Tracker.%20Mohon%20info%20lebih%20lanjut."
-   target="_blank" rel="noopener"
-   style="position: fixed; right: 18px; bottom: 18px; z-index: 1050; text-decoration: none;">
-    <div style="background:#25D366; color:white; border-radius:999px; display:flex; align-items:center; gap:10px; padding:10px 14px; box-shadow:0 12px 30px rgba(0,0,0,0.18); min-width: 160px; justify-content:center;">
-        <div style="background:rgba(255,255,255,0.18); border-radius:50%; width:42px; height:42px; display:flex; align-items:center; justify-content:center;">
+   target="_blank" rel="noopener" class="floating-wa">
+    <div class="floating-wa-chip">
+        <div class="floating-wa-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 21l1.65-3.8a9 9 0 111.6 1.6L3 21z"></path>
                 <path d="M8.5 9.5a5 5 0 007 7"></path>
