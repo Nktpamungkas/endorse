@@ -4,14 +4,16 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EndorsementController;
 use App\Http\Controllers\EndorsementRevisionController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\UserManageController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/', LandingController::class)->name('landing');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login.form');
 Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
 
 Route::middleware('single.auth')->group(function (): void {
-    Route::get('/', DashboardController::class)->name('dashboard');
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::resource('endorsements', EndorsementController::class);
     Route::post('/endorsements/{endorsement}/revisions', [EndorsementRevisionController::class, 'store'])
         ->name('endorsements.revisions.store');
