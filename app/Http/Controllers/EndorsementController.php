@@ -173,7 +173,13 @@ class EndorsementController extends Controller
 
     public function updateStatus(Request $request, Endorsement $endorsement): RedirectResponse
     {
-        abort_if($endorsement->user_id !== Auth::id(), 403);
+        $user = Auth::user();
+        if ($endorsement->user_id === null) {
+            // Rekam lama tanpa user_id: ikatkan ke user yang sedang login
+            $endorsement->update(['user_id' => $user->id]);
+        } elseif ($endorsement->user_id !== $user->id && $user->role !== 'master') {
+            return back()->withErrors(['status' => 'Tidak diizinkan memperbarui status job ini.']);
+        }
         $data = $request->validate([
             'status' => ['required', Rule::in(array_keys(Endorsement::STATUS_OPTIONS))],
         ]);
