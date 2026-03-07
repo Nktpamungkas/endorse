@@ -41,7 +41,7 @@ class AuthController extends Controller
         }
 
         if ($user->role === 'trial' && $user->trial_ends_at && Carbon::parse($user->trial_ends_at)->isPast()) {
-            return back()->withErrors(['username' => 'Masa trial berakhir. Silakan hubungi admin.'])->onlyInput('username');
+            return back()->withErrors(['username' => 'Masa trial Anda telah berakhir. Silakan lanjut ke paket berbayar untuk memperpanjang akses.'])->onlyInput('username');
         }
 
         Auth::login($user, true);
