@@ -19,6 +19,10 @@
                     </div>
                     <button class="btn btn-dark">Masuk</button>
                 </form>
+
+                <div class="text-center mt-3">
+                    <a href="{{ route('landing') }}" class="text-muted text-decoration-none">← Kembali ke beranda</a>
+                </div>
             </div>
         </div>
     </div>
