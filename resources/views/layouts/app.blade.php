@@ -258,7 +258,10 @@
                         <a class="nav-link {{ request()->routeIs('dashboard') ? 'active fw-semibold' : '' }}" href="{{ route('dashboard') }}">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('endorsements.*') ? 'active fw-semibold' : '' }}" href="{{ route('endorsements.index') }}">Data Endorse</a>
+                        <a class="nav-link {{ request()->routeIs('endorsements.*') && !request()->routeIs('endorsements.trashed*') ? 'active fw-semibold' : '' }}" href="{{ route('endorsements.index') }}">Data Endorse</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('endorsements.trashed*') ? 'active fw-semibold' : '' }}" href="{{ route('endorsements.trashed') }}">Endorse Dihapus</a>
                     </li>
                     <li class="nav-item">
                         {{-- Selalu tampilkan bagi user yang sudah login; controller akan membatasi akses non-master --}}

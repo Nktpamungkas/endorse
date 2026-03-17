@@ -176,17 +176,59 @@ class EndorsementController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Endorsement $endorsement): RedirectResponse
+    public function destroy(Request $request, Endorsement $endorsement): RedirectResponse
     {
         $this->assertOwnership($endorsement);
-        $this->logActivity($endorsement, 'delete', ['status' => $endorsement->status]);
-        if ($endorsement->checkout_proof_path) {
-            Storage::disk('public')->delete($endorsement->checkout_proof_path);
-        }
+        $data = $request->validate([
+            'delete_reason' => ['required', 'string', 'max:500'],
+        ]);
 
+        $endorsement->forceFill([
+            'deleted_reason' => $data['delete_reason'],
+            'deleted_by' => Auth::id(),
+        ])->save();
+
+        $this->logActivity($endorsement, 'delete', [
+            'status' => $endorsement->status,
+            'reason' => $data['delete_reason'],
+        ]);
         $endorsement->delete();
 
-        return redirect()->route('endorsements.index')->with('success', 'Endorse berhasil dihapus.');
+        return redirect()->route('endorsements.trashed')->with('success', 'Endorse dipindah ke arsip hapus.');
+    }
+
+    public function trashed(Request $request): View
+    {
+        $query = Endorsement::onlyTrashed()
+            ->where('user_id', Auth::id())
+            ->with('deletedBy')
+            ->orderByDesc('deleted_at');
+
+        if ($request->filled('q')) {
+            $keyword = $request->string('q');
+            $query->where(function ($builder) use ($keyword): void {
+                $builder->where('brand_name', 'like', '%'.$keyword.'%')
+                    ->orWhere('campaign_name', 'like', '%'.$keyword.'%');
+            });
+        }
+
+        $endorsements = $query->paginate(50)->withQueryString();
+
+        return view('endorsements.trashed', [
+            'endorsements' => $endorsements,
+        ]);
+    }
+
+    public function trashedShow(int $endorsementId): View
+    {
+        $endorsement = Endorsement::onlyTrashed()->with(['revisions', 'deletedBy'])->findOrFail($endorsementId);
+        $this->assertOwnership($endorsement);
+
+        return view('endorsements.show', [
+            'endorsement' => $endorsement,
+            'statusOptions' => Endorsement::STATUS_OPTIONS,
+            'isDeletedView' => true,
+        ]);
     }
 
     public function updateStatus(Request $request, Endorsement $endorsement): RedirectResponse

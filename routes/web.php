@@ -15,6 +15,8 @@ Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,
 Route::middleware('single.auth')->group(function (): void {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::resource('endorsements', EndorsementController::class);
+    Route::get('/endorsements-deleted', [EndorsementController::class, 'trashed'])->name('endorsements.trashed');
+    Route::get('/endorsements-deleted/{endorsement}', [EndorsementController::class, 'trashedShow'])->name('endorsements.trashed.show');
     Route::post('/endorsements/{endorsement}/revisions', [EndorsementRevisionController::class, 'store'])
         ->name('endorsements.revisions.store');
     Route::delete('/endorsements/{endorsement}/revisions/{revision}', [EndorsementRevisionController::class, 'destroy'])

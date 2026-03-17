@@ -7,10 +7,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use App\Models\EndorsementActivity;
+use App\Models\User;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Endorsement extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     public const STATUS_OPTIONS = [
         'deal_masuk' => 'Deal Masuk',
@@ -85,6 +88,8 @@ class Endorsement extends Model
         'payment_due_date',
         'payment_received_date',
         'notes',
+        'deleted_reason',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -109,6 +114,7 @@ class Endorsement extends Model
         'other_cost' => 'decimal:2',
         'payment_due_date' => 'date',
         'payment_received_date' => 'date',
+        'deleted_at' => 'datetime',
     ];
 
     public function revisions(): HasMany
@@ -119,6 +125,11 @@ class Endorsement extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(EndorsementActivity::class)->latest();
+    }
+
+    public function deletedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 
     public function getTotalIncomeAttribute(): float
