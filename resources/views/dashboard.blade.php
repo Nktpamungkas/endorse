@@ -26,9 +26,19 @@
     </div>
 
     <div class="card card-soft p-3 mb-3" style="background: linear-gradient(120deg, #e9f4ff, #fff6e8);">
-        <div class="small text-muted-soft">Laba Bersih Total</div>
-        <div class="h4 fw-bold mb-0 {{ $netProfit >= 0 ? 'text-success' : 'text-danger' }}">
-            Rp {{ number_format($netProfit, 0, ',', '.') }}
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <div class="small text-muted-soft">Laba Bersih Total</div>
+                <div class="h4 fw-bold mb-0 {{ $netProfit >= 0 ? 'text-success' : 'text-danger' }}">
+                    Rp {{ number_format($netProfit, 0, ',', '.') }}
+                </div>
+            </div>
+            <div class="text-end">
+                <div class="small text-muted-soft">Laba sudah diterima</div>
+                <div class="h5 fw-bold mb-0 text-success">
+                    Rp {{ number_format($receivedNetProfit, 0, ',', '.') }}
+                </div>
+            </div>
         </div>
     </div>
 
@@ -120,7 +130,7 @@
             <div class="card card-soft p-3 h-100">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <h2 class="h6 fw-bold mb-0">Payment Belum Lunas</h2>
-                    <a href="{{ route('endorsements.index', ['payment_status' => 'belum_bayar']) }}" class="btn btn-sm btn-outline-dark">Lihat Semua</a>
+                    <a href="{{ route('endorsements.index', ['status' => 'menunggu_payment']) }}" class="btn btn-sm btn-outline-dark">Lihat Semua</a>
                 </div>
                 <div class="d-grid gap-2 small" style="max-height: 320px; overflow-y: auto;">
                     @forelse($waitingPaymentItems as $item)
