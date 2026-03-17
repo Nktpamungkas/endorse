@@ -3,12 +3,12 @@
 @section('content')
     <div class="page-head mb-3 align-items-start">
         <div>
-            <div class="text-muted-soft small mb-1">Settings · User & Access</div>
+            <div class="text-muted-soft small mb-1">Settings / User & Access</div>
             <h1 class="h3 fw-bold mb-1">Kelola User</h1>
-            <div class="text-muted-soft">Tambah akun, atur role, pantau sesi aktif, dan paksa logout bila diperlukan.</div>
+            <div class="text-muted-soft">Kelola akun, durasi sesi, dan aksi cepat seperti force logout atau hapus.</div>
         </div>
         <div class="text-end text-muted-soft small">
-            Sesi trial 2 jam · Berlangganan 8 jam · Master 8 jam
+            Trial 2 jam · Berlangganan 8 jam · Master 8 jam
         </div>
     </div>
 
@@ -45,47 +45,45 @@
         </div>
     </div>
 
-    <div class="card card-soft p-3 mb-3">
+    <div class="card card-soft p-4 mb-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <div class="text-muted-soft small">Quick action</div>
                 <h2 class="h6 fw-bold mb-0">Tambah User</h2>
             </div>
-            <span class="text-muted small">Isi singkat · Klik Buat</span>
         </div>
-        <form method="POST" action="{{ route('users.store') }}" class="row g-3 align-items-start" id="createUserForm">
+        <form method="POST" action="{{ route('users.store') }}" class="cf-grid" id="createUserForm">
             @csrf
-            <div class="col-lg-3 col-md-6">
-                <label class="form-label small text-muted-soft">Username</label>
+            <div class="cf-field">
+                <label class="cf-label">Username</label>
                 <input type="text" name="username" class="form-control" required placeholder="mis. johndoe">
             </div>
-            <div class="col-lg-3 col-md-6">
-                <label class="form-label small text-muted-soft d-flex justify-content-between">
-                    <span>Password</span>
-                    <span class="text-muted">berikan ke user</span>
+            <div class="cf-field">
+                <label class="cf-label d-flex justify-content-between">
+                    <span>Password</span><span class="text-muted">berikan ke user</span>
                 </label>
                 <input type="text" name="password" class="form-control" required placeholder="min 4 karakter">
             </div>
-            <div class="col-lg-3 col-md-6">
-                <label class="form-label small text-muted-soft">Role</label>
+            <div class="cf-field">
+                <label class="cf-label">Role</label>
                 <select name="role" class="form-select" data-role-select>
                     <option value="trial" selected>Trial</option>
                     <option value="paid">Berlangganan</option>
                 </select>
             </div>
-            <div class="col-lg-3 col-md-6">
-                <label class="form-label small text-muted-soft">Trial Berakhir</label>
+            <div class="cf-field">
+                <label class="cf-label">Trial Berakhir</label>
                 <input type="date" name="trial_ends_at" class="form-control" data-trial-date>
                 <div class="form-text small">Kosongkan jika berlangganan.</div>
             </div>
-            <div class="col-12 d-flex justify-content-end">
+            <div class="cf-actions">
                 <button class="btn btn-dark px-4">Buat User</button>
             </div>
         </form>
     </div>
 
-    <div class="card card-soft p-3 mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
+    <div class="card card-soft p-4 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <div class="text-muted-soft small">Filter & Pencarian</div>
                 <h2 class="h6 fw-bold mb-0">Cari user cepat</h2>
@@ -207,4 +205,46 @@
         select.addEventListener('change', () => toggleTrialDate(select, dateInput));
     });
 </script>
+@endpush
+
+@push('styles')
+<style>
+    .cf-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        align-items: start;
+    }
+    .cf-field .form-control,
+    .cf-field .form-select {
+        height: 42px;
+    }
+    .cf-label {
+        font-size: 12px;
+        color: #6c757d;
+        margin-bottom: 4px;
+        display: block;
+    }
+    .cf-actions {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 4px;
+    }
+    .user-row-form .form-control-sm,
+    .user-row-form .form-select-sm {
+        min-height: 34px;
+    }
+    .table th {
+        font-size: 13px;
+        text-transform: none;
+        color: #4b5563;
+    }
+    .table td {
+        vertical-align: middle;
+    }
+    .card-soft {
+        border: 1px solid rgba(19, 39, 67, 0.08);
+    }
+</style>
 @endpush
