@@ -110,7 +110,10 @@ class UserManageController extends Controller
             DB::table('sessions')->where('user_id', $user->id)->delete();
         }
 
-        $user->update(['remember_token' => Str::random(60)]);
+        $user->forceFill([
+            'remember_token' => Str::random(60),
+            'session_code' => Str::random(40),
+        ])->save();
 
         return back()->with('success', 'User berhasil dipaksa logout.');
     }

@@ -22,6 +22,19 @@ class EnsureSingleUserAuthenticated
         }
 
         $user = Auth::user();
+        $sessionCode = $request->session()->get('user_session_code');
+
+        if ($user->session_code && $sessionCode && $sessionCode !== $user->session_code) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('login.form')->withErrors(['username' => 'Sesi Anda telah di-logout. Silakan login ulang.']);
+        }
+
+        if (! $sessionCode && $user->session_code) {
+            // Set session code if missing (mis. setelah remember me login)
+            $request->session()->put('user_session_code', $user->session_code);
+        }
 
         if (! $user->active) {
             Auth::logout();

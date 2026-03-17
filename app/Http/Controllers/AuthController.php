@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -71,11 +72,15 @@ class AuthController extends Controller
             return back()->withErrors(['username' => 'Masa trial Anda telah berakhir. Silakan lanjut ke paket berbayar untuk memperpanjang akses.'])->onlyInput('username');
         }
 
+        $newSessionCode = Str::random(40);
+        $user->forceFill(['session_code' => $newSessionCode])->save();
+
         Cache::forget($attemptKey);
         Cache::forget($lockKey);
 
         Auth::login($user, true);
         $request->session()->regenerate();
+        $request->session()->put('user_session_code', $newSessionCode);
 
         $this->logLoginActivity($user->id, $user->username, true, $request);
 
