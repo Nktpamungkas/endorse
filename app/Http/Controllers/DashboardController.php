@@ -25,6 +25,12 @@ class DashboardController extends Controller
         $totalIncome = (float) Endorsement::where('user_id', Auth::id())->sum(DB::raw('fee_amount + reimburse_amount'));
         $totalCost = (float) Endorsement::where('user_id', Auth::id())->sum(DB::raw('product_cost + other_cost'));
         $waitingPayment = Endorsement::where('user_id', Auth::id())->where('payment_status', '!=', 'lunas')->count();
+        $waitingPaymentItems = Endorsement::query()
+            ->where('user_id', Auth::id())
+            ->where('payment_status', '!=', 'lunas')
+            ->orderByRaw("CASE WHEN payment_due_date IS NULL THEN 1 ELSE 0 END, payment_due_date ASC, updated_at DESC")
+            ->limit(10)
+            ->get();
 
         $selectedStatusItems = Endorsement::query()
             ->where('user_id', Auth::id())
@@ -48,6 +54,7 @@ class DashboardController extends Controller
             'totalCost' => $totalCost,
             'netProfit' => $totalIncome - $totalCost,
             'waitingPayment' => $waitingPayment,
+            'waitingPaymentItems' => $waitingPaymentItems,
             'selectedStatus' => $selectedStatus,
             'selectedStatusItems' => $selectedStatusItems,
             'statusOptions' => Endorsement::STATUS_OPTIONS,

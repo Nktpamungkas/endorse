@@ -25,6 +25,15 @@
                 </select>
             </div>
             <div class="col-md-3">
+                <label class="form-label small text-muted-soft">Filter payment</label>
+                <select class="form-select" name="payment_status">
+                    <option value="">Semua</option>
+                    @foreach(\App\Models\Endorsement::PAYMENT_STATUS_OPTIONS as $key => $label)
+                        <option value="{{ $key }}" @selected(request('payment_status') === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3">
                 <label class="form-label small text-muted-soft">Filter insight</label>
                 <select class="form-select" name="insight">
                     <option value="">Semua</option>

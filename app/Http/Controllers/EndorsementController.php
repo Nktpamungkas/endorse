@@ -38,6 +38,10 @@ class EndorsementController extends Controller
             $query->where('status', $request->string('status'));
         }
 
+        if ($request->filled('payment_status')) {
+            $query->where('payment_status', $request->string('payment_status'));
+        }
+
         $insightFilter = (string) $request->string('insight');
         if ($insightFilter !== '') {
             if ($insightFilter === 'waiting') {

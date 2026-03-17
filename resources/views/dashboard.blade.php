@@ -86,7 +86,7 @@
     </div>
 
     <div class="row g-3">
-        <div class="col-12">
+        <div class="col-lg-8">
             <div class="card card-soft p-3 h-100">
                 <h2 class="h6 fw-bold">Status Endorse</h2>
                 <div class="d-grid gap-2 mt-2">
@@ -102,6 +102,30 @@
                             </a>
                         </div>
                     @endforeach
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card card-soft p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="h6 fw-bold mb-0">Payment Belum Lunas</h2>
+                    <a href="{{ route('endorsements.index', ['payment_status' => 'belum_bayar']) }}" class="btn btn-sm btn-outline-dark">Lihat Semua</a>
+                </div>
+                <div class="d-grid gap-2 small" style="max-height: 320px; overflow-y: auto;">
+                    @forelse($waitingPaymentItems as $item)
+                        <div class="border rounded-3 p-2">
+                            <div class="fw-semibold">{{ $item->brand_name }}</div>
+                            @if($item->campaign_name)
+                                <div class="text-muted-soft">{{ $item->campaign_name }}</div>
+                            @endif
+                            <div class="d-flex justify-content-between mt-1">
+                                <span class="badge-status">{{ \App\Models\Endorsement::PAYMENT_STATUS_OPTIONS[$item->payment_status] ?? $item->payment_status }}</span>
+                                <span class="text-muted">{{ optional($item->payment_due_date)->format('d/m/Y') ?? 'Due ?' }}</span>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-muted-soft small">Semua payment sudah lunas.</div>
+                    @endforelse
                 </div>
             </div>
         </div>
