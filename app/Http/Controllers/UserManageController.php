@@ -15,10 +15,15 @@ use Illuminate\View\View;
 
 class UserManageController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $this->authorizeMaster();
-        $users = User::orderByDesc('role')->orderBy('username')->get();
+        $users = User::query()
+            ->when($request->filled('q'), fn ($q) => $q->where('username', 'like', '%'.$request->string('q').'%'))
+            ->when($request->filled('role'), fn ($q) => $q->where('role', $request->string('role')))
+            ->orderByDesc('role')
+            ->orderBy('username')
+            ->get();
         $onlineUserIds = collect();
 
         if (Schema::hasTable('sessions')) {
@@ -32,6 +37,7 @@ class UserManageController extends Controller
         return view('users.index', [
             'users' => $users,
             'onlineUserIds' => $onlineUserIds,
+            'query' => $request->all(),
         ]);
     }
 
