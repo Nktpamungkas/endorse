@@ -42,6 +42,7 @@ class UserManageController extends Controller
             'username' => ['required', 'string', 'max:50', 'unique:users,username'],
             'password' => ['required', 'string', 'min:4'],
             'trial_ends_at' => ['nullable', 'date'],
+            'role' => ['nullable', 'in:trial,paid'],
         ]);
 
         // Pastikan kolom email terisi unik agar tidak bentrok dengan constraint database.
@@ -50,13 +51,15 @@ class UserManageController extends Controller
             $email = $data['username'] . '@trial.local';
         }
 
+        $role = $data['role'] ?? 'trial';
+
         User::create([
             'name' => $data['username'],
             'email' => $email,
             'username' => $data['username'],
             'password' => Hash::make($data['password']),
-            'role' => 'trial',
-            'trial_ends_at' => $data['trial_ends_at'],
+            'role' => $role,
+            'trial_ends_at' => $role === 'trial' ? $data['trial_ends_at'] : null,
             'active' => true,
         ]);
 
@@ -70,11 +73,13 @@ class UserManageController extends Controller
             'trial_ends_at' => ['nullable', 'date'],
             'active' => ['required', 'boolean'],
             'password' => ['nullable', 'string', 'min:4'],
+            'role' => ['required', 'in:trial,paid,master'],
         ]);
 
         $update = [
-            'trial_ends_at' => $data['trial_ends_at'],
             'active' => $data['active'],
+            'role' => $data['role'],
+            'trial_ends_at' => $data['role'] === 'trial' ? $data['trial_ends_at'] : null,
         ];
 
         if (! empty($data['password'])) {

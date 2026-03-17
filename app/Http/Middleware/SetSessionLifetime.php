@@ -16,9 +16,10 @@ class SetSessionLifetime
 
         if ($user) {
             $minutes = match ($user->role) {
-                'master' => 480, // 8 jam
-                'trial' => 120,  // 2 jam
-                default => 240,  // 4 jam
+                'master' => 480,      // 8 jam
+                'paid' => 480,        // 8 jam untuk pelanggan berbayar
+                'trial' => 120,       // 2 jam
+                default => 240,       // 4 jam
             };
         }
 

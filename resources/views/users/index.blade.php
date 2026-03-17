@@ -9,7 +9,7 @@
     </div>
 
     <div class="card card-soft p-3 mb-3">
-        <h2 class="h6 fw-bold mb-3">Tambah User Trial</h2>
+        <h2 class="h6 fw-bold mb-3">Tambah User</h2>
         <form method="POST" action="{{ route('users.store') }}" class="row g-3">
             @csrf
             <div class="col-md-3">
@@ -21,8 +21,16 @@
                 <input type="text" name="password" class="form-control" required>
             </div>
             <div class="col-md-3">
+                <label class="form-label">Role</label>
+                <select name="role" class="form-select">
+                    <option value="trial" selected>Trial</option>
+                    <option value="paid">Berlangganan</option>
+                </select>
+            </div>
+            <div class="col-md-3">
                 <label class="form-label">Trial berakhir</label>
                 <input type="date" name="trial_ends_at" class="form-control">
+                <div class="form-text">Kosongkan jika role Berlangganan.</div>
             </div>
             <div class="col-md-3 d-flex align-items-end">
                 <button class="btn btn-dark w-100">Buat User Trial</button>
@@ -48,7 +56,7 @@
                 @foreach($users as $user)
                     <tr>
                         <td>{{ $user->username }}</td>
-                        <td>{{ ucfirst($user->role) }}</td>
+                    <td>{{ $user->role === 'paid' ? 'Berlangganan' : ucfirst($user->role) }}</td>
                     <td>{{ $user->trial_ends_at ? \Illuminate\Support\Carbon::parse($user->trial_ends_at)->format('d/m/Y') : '-' }}</td>
                     <td>
                         <span class="badge {{ $user->active ? 'bg-success' : 'bg-secondary' }}">
@@ -69,6 +77,11 @@
                                     <form method="POST" action="{{ route('users.update', $user) }}" class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-end">
                                         @csrf
                                         <input type="date" name="trial_ends_at" value="{{ $user->trial_ends_at }}" class="form-control form-control-sm" style="max-width: 160px">
+                                        <select name="role" class="form-select form-select-sm" style="max-width:140px" @disabled($user->role === 'master')>
+                                            <option value="trial" @selected($user->role === 'trial')>Trial</option>
+                                            <option value="paid" @selected($user->role === 'paid')>Berlangganan</option>
+                                            <option value="master" @selected($user->role === 'master')>Master</option>
+                                        </select>
                                         <select name="active" class="form-select form-select-sm" style="max-width:120px">
                                             <option value="1" @selected($user->active)>Aktif</option>
                                             <option value="0" @selected(!$user->active)>Nonaktif</option>
