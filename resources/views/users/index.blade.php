@@ -65,6 +65,10 @@
                                         <input type="text" name="password" class="form-control form-control-sm" placeholder="Reset password (opsional)" style="max-width: 200px">
                                         <button class="btn btn-sm btn-dark">Update</button>
                                     </form>
+                                    <form method="POST" action="{{ route('users.forceLogout', $user) }}" class="d-inline" onsubmit="return confirm('Paksa logout user ini?')">
+                                        @csrf
+                                        <button class="btn btn-sm btn-outline-warning">Force Logout</button>
+                                    </form>
                                     <form method="POST" action="{{ route('users.destroy', $user) }}" onsubmit="return confirm('Hapus user ini beserta semua datanya?')" class="d-inline">
                                         @csrf
                                         @method('DELETE')

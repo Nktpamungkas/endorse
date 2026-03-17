@@ -27,6 +27,7 @@ Route::middleware('single.auth')->group(function (): void {
     Route::get('/users', [UserManageController::class, 'index'])->name('users.index');
     Route::post('/users', [UserManageController::class, 'store'])->name('users.store');
     Route::post('/users/{user}', [UserManageController::class, 'update'])->name('users.update');
+    Route::post('/users/{user}/force-logout', [UserManageController::class, 'forceLogout'])->name('users.forceLogout');
     Route::delete('/users/{user}', [UserManageController::class, 'destroy'])->name('users.destroy');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/profile/password', [AuthController::class, 'showPasswordForm'])->name('password.form');

@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class UserManageController extends Controller
@@ -95,6 +97,22 @@ class UserManageController extends Controller
         });
 
         return back()->with('success', 'User dan seluruh datanya sudah dihapus.');
+    }
+
+    public function forceLogout(User $user): RedirectResponse
+    {
+        $this->authorizeMaster();
+        if ($user->role === 'master') {
+            abort(403, 'Tidak boleh memaksa logout akun master.');
+        }
+
+        if (Schema::hasTable('sessions')) {
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+        }
+
+        $user->update(['remember_token' => Str::random(60)]);
+
+        return back()->with('success', 'User berhasil dipaksa logout.');
     }
 
     private function authorizeMaster(): void
