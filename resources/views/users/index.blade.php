@@ -48,8 +48,12 @@
                     <tr>
                         <td>{{ $user->username }}</td>
                         <td>{{ ucfirst($user->role) }}</td>
-                        <td>{{ $user->trial_ends_at ? \Illuminate\Support\Carbon::parse($user->trial_ends_at)->format('d/m/Y') : '-' }}</td>
-                        <td>{{ $user->active ? 'Aktif' : 'Nonaktif' }}</td>
+                    <td>{{ $user->trial_ends_at ? \Illuminate\Support\Carbon::parse($user->trial_ends_at)->format('d/m/Y') : '-' }}</td>
+                    <td>
+                        <span class="badge {{ $user->active ? 'bg-success' : 'bg-secondary' }}">
+                            {{ $user->active ? 'Aktif' : 'Nonaktif' }}
+                        </span>
+                    </td>
                         <td class="text-end">
                             @if($user->role === 'master')
                                 <span class="text-muted small">Master</span>
