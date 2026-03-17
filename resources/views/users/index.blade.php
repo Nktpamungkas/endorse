@@ -40,6 +40,7 @@
                     <th>Role</th>
                     <th>Trial Berakhir</th>
                     <th>Status</th>
+                    <th>Online</th>
                     <th class="text-end">Aksi</th>
                 </tr>
                 </thead>
@@ -52,6 +53,12 @@
                     <td>
                         <span class="badge {{ $user->active ? 'bg-success' : 'bg-secondary' }}">
                             {{ $user->active ? 'Aktif' : 'Nonaktif' }}
+                        </span>
+                    </td>
+                    <td>
+                        @php $isOnline = $onlineUserIds->contains($user->id); @endphp
+                        <span class="badge {{ $isOnline ? 'bg-success' : 'bg-secondary' }}">
+                            {{ $isOnline ? 'Online' : 'Offline' }}
                         </span>
                     </td>
                         <td class="text-end">

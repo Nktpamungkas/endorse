@@ -19,8 +19,20 @@ class UserManageController extends Controller
     {
         $this->authorizeMaster();
         $users = User::orderByDesc('role')->orderBy('username')->get();
+        $onlineUserIds = collect();
 
-        return view('users.index', compact('users'));
+        if (Schema::hasTable('sessions')) {
+            $onlineUserIds = DB::table('sessions')
+                ->whereNotNull('user_id')
+                ->where('last_activity', '>=', now()->subMinutes(15)->getTimestamp())
+                ->pluck('user_id')
+                ->unique();
+        }
+
+        return view('users.index', [
+            'users' => $users,
+            'onlineUserIds' => $onlineUserIds,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
