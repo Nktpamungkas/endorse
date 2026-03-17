@@ -28,7 +28,9 @@ class EnsureSingleUserAuthenticated
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
-            return redirect()->route('login.form')->withErrors(['username' => 'Sesi Anda telah di-logout. Silakan login ulang.']);
+            return redirect()->route('login.form')->withErrors([
+                'username' => 'Sesi Anda telah diakhiri (login baru atau admin memutus sesi). Silakan login ulang.',
+            ]);
         }
 
         if (! $sessionCode && $user->session_code) {

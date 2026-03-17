@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureSingleUserAuthenticated;
+use App\Http\Middleware\SetSessionLifetime;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,7 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'single.auth' => EnsureSingleUserAuthenticated::class,
+            'session.dynamic' => SetSessionLifetime::class,
         ]);
+
+        $middleware->prependToGroup('web', SetSessionLifetime::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
