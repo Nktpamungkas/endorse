@@ -7,10 +7,15 @@ use App\Http\Controllers\EndorsementRevisionController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\UserManageController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\View;
 
 Route::get('/', LandingController::class)->name('landing');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login.form');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login.attempt');
+
+Route::get('/ui-demo', function (): Illuminate\View\View {
+    return view('ui-demo');
+})->name('ui.demo');
 
 Route::middleware('single.auth')->group(function (): void {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');

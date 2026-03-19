@@ -1,11 +1,180 @@
-@import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 222.2 84% 4.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 222.2 84% 4.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222.2 84% 4.9%;
+        --primary: 213 78% 42%;
+        --primary-foreground: 210 40% 98%;
+        --secondary: 218 11% 65%;
+        --secondary-foreground: 220 14% 96%;
+        --muted: 220 14% 96%;
+        --muted-foreground: 218 11% 35%;
+        --accent: 24 96% 60%;
+        --accent-foreground: 222.2 47.4% 11.2%;
+        --destructive: 0 72% 51%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 214.3 31.8% 91.4%;
+        --input: 214.3 31.8% 91.4%;
+        --ring: 222.2 84% 4.9%;
+        --radius: 0.75rem;
+    }
+
+    .dark {
+        --background: 222 47% 5%;
+        --foreground: 210 40% 98%;
+        --card: 222 47% 6%;
+        --card-foreground: 210 40% 98%;
+        --popover: 222 47% 6%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 213 78% 60%;
+        --primary-foreground: 222.2 47.4% 11.2%;
+        --secondary: 217.2 32.6% 17.5%;
+        --secondary-foreground: 210 40% 98%;
+        --muted: 217.2 32.6% 17.5%;
+        --muted-foreground: 215 20.2% 65.1%;
+        --accent: 24 96% 60%;
+        --accent-foreground: 222.2 47.4% 11.2%;
+        --destructive: 0 72% 51%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 217.2 32.6% 17.5%;
+        --input: 217.2 32.6% 17.5%;
+        --ring: 212.7 26.8% 83.9%;
+    }
+
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+        font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+            sans-serif;
+        min-height: 100vh;
+        background:
+            radial-gradient(circle at 10% 10%, #deecff 0%, transparent 35%),
+            radial-gradient(circle at 80% 15%, #ffe8c7 0%, transparent 40%),
+            linear-gradient(135deg, hsl(var(--background)), hsl(var(--muted)));
+    }
+}
+
+/* Bridge styling untuk komponen Blade lama (Bootstrap) agar selaras Shadcn theme */
+.navbar-endorse {
+    background: color-mix(in srgb, hsl(var(--background)) 90%, rgba(255,255,255,0.8));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 12px 40px rgba(15, 76, 129, 0.08);
+    backdrop-filter: blur(8px);
+}
+.card-soft {
+    background: color-mix(in srgb, hsl(var(--card)) 92%, rgba(255,255,255,0.9));
+    border: 1px solid hsl(var(--border));
+    border-radius: 18px;
+    box-shadow: 0 16px 48px rgba(15, 76, 129, 0.1);
+}
+.btn-dark, .btn-primary {
+    border: none;
+    background: linear-gradient(120deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 55%, hsl(var(--accent)) 120%);
+}
+.btn-outline-dark {
+    border-color: hsl(var(--border));
+    color: hsl(var(--foreground));
+}
+.table > :not(caption) > * > * {
+    padding: 0.75rem;
+}
+.text-muted-soft {
+    color: hsl(var(--muted-foreground));
+}
+.badge-status {
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+}
+.main-shell {
+    max-width: 1700px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+.navbar-endorse .nav-link {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+}
+.navbar-endorse .nav-link.active,
+.navbar-endorse .nav-link:focus,
+.navbar-endorse .nav-link:hover {
+    color: hsl(var(--primary));
+}
+.navbar-endorse .navbar-toggler {
+    border-color: hsl(var(--border));
+}
+.navbar-endorse .navbar-toggler-icon {
+    filter: invert(20%);
+}
+.btn {
+    border-radius: 0.65rem;
+}
+.btn-outline-dark:hover {
+    background: hsl(var(--muted));
+}
+
+/* App shell with sidebar */
+.app-bg {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #eef4ff 0%, #f8fbff 35%, #ffffff 100%);
+}
+.app-shell {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+}
+@media (min-width: 992px) {
+    .app-shell {
+        grid-template-columns: 270px 1fr;
+        align-items: start;
+    }
+}
+.app-main {
+    min-height: 80vh;
+}
+.sidebar-card {
+    background: #ffffff;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+}
+.sidebar-link {
+    display: block;
+    padding: 0.65rem 0.9rem;
+    margin: 0.1rem 0;
+    border-radius: 12px;
+    color: hsl(var(--foreground));
+    text-decoration: none;
+    font-weight: 600;
+}
+.sidebar-link:hover {
+    background: hsl(var(--muted));
+}
+.sidebar-link.active {
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+    box-shadow: inset 0 0 0 1px hsl(var(--border));
+}
+.page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+.table-responsive {
+    overflow-x: auto;
+}
+@media (min-width: 768px) {
+    .table-responsive {
+        overflow-x: visible;
+    }
 }

@@ -20,6 +20,8 @@ class EndorsementController extends Controller
      */
     public function index(Request $request): View
     {
+        $perPage = max(5, min((int) $request->integer('per_page', 50), 100));
+
         $query = Endorsement::query()
             ->where('user_id', Auth::id())
             ->orderByRaw('CASE WHEN deal_date IS NULL THEN 1 ELSE 0 END')
@@ -58,12 +60,13 @@ class EndorsementController extends Controller
             }
         }
 
-        $endorsements = $query->paginate(50)->withQueryString();
+        $endorsements = $query->paginate($perPage)->withQueryString();
 
         return view('endorsements.index', [
             'endorsements' => $endorsements,
             'statusOptions' => Endorsement::STATUS_OPTIONS,
             'insightFilter' => $insightFilter,
+            'perPage' => $perPage,
         ]);
     }
 
