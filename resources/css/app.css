@@ -168,6 +168,29 @@
     color: hsl(var(--foreground));
     box-shadow: inset 0 0 0 1px hsl(var(--border));
 }
+
+/* Mobile menu */
+.mobile-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+}
+.mobile-menu-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.25);
+}
+.mobile-menu-sheet {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 78%;
+    max-width: 300px;
+    background: #fff;
+    box-shadow: 6px 0 20px rgba(0,0,0,0.12);
+    overflow-y: auto;
+}
 .page-head {
     display: flex;
     justify-content: space-between;

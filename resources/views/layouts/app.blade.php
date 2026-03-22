@@ -18,14 +18,51 @@
         {{-- Mobile top bar --}}
         <div class="lg:hidden bg-white/90 backdrop-blur border-b border-border sticky top-0 z-40">
             <div class="px-4 py-3 flex items-center justify-between gap-3">
-                <div>
-                    <div class="text-sm font-semibold text-foreground">Endorse Tracker</div>
-                    <div class="text-xs text-muted-foreground">Summary & monitoring</div>
+                <div class="flex items-center gap-2">
+                    <button id="mobileMenuBtn" aria-label="Buka menu" class="inline-flex items-center justify-center rounded-lg border border-border px-2 py-1 text-sm text-foreground">
+                        ☰
+                    </button>
+                    <div>
+                        <div class="text-sm font-semibold text-foreground">Endorse Tracker</div>
+                        <div class="text-xs text-muted-foreground">Summary & monitoring</div>
+                    </div>
                 </div>
                 <div class="flex items-center gap-2">
                     <a href="{{ route('dashboard') }}" class="text-xs font-semibold text-foreground">Dashboard</a>
                     <a href="{{ route('endorsements.create') }}" class="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">+ Tambah</a>
                 </div>
+            </div>
+        </div>
+
+        {{-- Mobile menu overlay --}}
+        <div id="mobileMenuPanel" class="mobile-menu hidden lg:hidden">
+            <div class="mobile-menu-overlay" id="mobileMenuClose"></div>
+            <div class="mobile-menu-sheet">
+                <div class="px-4 py-4 border-b border-border flex items-center justify-between">
+                    <div>
+                        <div class="text-sm font-semibold text-foreground">Endorse Tracker</div>
+                        <div class="text-xs text-muted-foreground">Summary & monitoring</div>
+                    </div>
+                    <button id="mobileMenuX" aria-label="Tutup menu" class="text-lg">✕</button>
+                </div>
+                <nav class="p-3 space-y-4 text-sm">
+                    <div class="space-y-1">
+                        <p class="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Home</p>
+                        <a class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Dashboard</a>
+                        <a class="sidebar-link {{ request()->routeIs('endorsements.*') && !request()->routeIs('endorsements.trashed*') ? 'active' : '' }}" href="{{ route('endorsements.index') }}">Data Endorse</a>
+                        <a class="sidebar-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">Kelola User</a>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Actions</p>
+                        <a class="sidebar-link {{ request()->routeIs('endorsements.create') ? 'active' : '' }}" href="{{ route('endorsements.create') }}">Tambah Endorse</a>
+                        <a class="sidebar-link {{ request()->routeIs('endorsements.trashed*') ? 'active' : '' }}" href="{{ route('endorsements.trashed') }}">Endorse Dihapus</a>
+                        <a class="sidebar-link {{ request()->routeIs('password.form') ? 'active' : '' }}" href="{{ route('password.form') }}">Ganti Password</a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button class="sidebar-link w-100 text-start">Logout</button>
+                        </form>
+                    </div>
+                </nav>
             </div>
         </div>
 
@@ -75,6 +112,22 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (() => {
+        const panel = document.getElementById('mobileMenuPanel');
+        const openBtn = document.getElementById('mobileMenuBtn');
+        const closeBtn = document.getElementById('mobileMenuClose');
+        const closeX = document.getElementById('mobileMenuX');
+        const toggle = (show) => {
+            if (!panel) return;
+            panel.classList.toggle('hidden', !show);
+            document.body.style.overflow = show ? 'hidden' : '';
+        };
+        openBtn?.addEventListener('click', () => toggle(true));
+        closeBtn?.addEventListener('click', () => toggle(false));
+        closeX?.addEventListener('click', () => toggle(false));
+    })();
+</script>
 @stack('scripts')
 </body>
 </html>
