@@ -140,6 +140,10 @@
         align-items: start;
     }
 }
+.sidebar-wrapper {
+    position: sticky;
+    top: 1rem;
+}
 .app-main {
     min-height: 80vh;
 }

@@ -15,8 +15,24 @@
 <body>
 <div class="app-bg">
     @if(auth()->check())
+        {{-- Mobile top bar --}}
+        <div class="lg:hidden bg-white/90 backdrop-blur border-b border-border sticky top-0 z-40">
+            <div class="px-4 py-3 flex items-center justify-between gap-3">
+                <div>
+                    <div class="text-sm font-semibold text-foreground">Endorse Tracker</div>
+                    <div class="text-xs text-muted-foreground">Summary & monitoring</div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('dashboard') }}" class="text-xs font-semibold text-foreground">Dashboard</a>
+                    <a href="{{ route('endorsements.create') }}" class="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">+ Tambah</a>
+                </div>
+            </div>
+        </div>
+
         <div class="app-shell container-fluid py-4">
-            @include('layouts.sidebar')
+            <div class="sidebar-wrapper hidden lg:block">
+                @include('layouts.sidebar')
+            </div>
             <main class="app-main">
                 @if (session('success'))
                     <div class="alert alert-success">{{ session('success') }}</div>
