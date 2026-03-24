@@ -1,9 +1,5 @@
 @extends('layouts.app', ['title' => 'Login Endorse Tracker'])
 
-@push('head')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-@endpush
-
 @section('content')
     <div class="min-vh-100 d-flex align-items-center justify-content-center py-5"
          style="background: radial-gradient(circle at 20% 20%, #e8f0ff 0, transparent 35%), radial-gradient(circle at 80% 10%, #ffe7d1 0, transparent 35%), linear-gradient(135deg, #f8fbff, #fff8f1);">
