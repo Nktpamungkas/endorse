@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Endorse Tracker' }}</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230f4c81'/%3E%3Cpath d='M18 12h28a4 4 0 0 1 4 4v32a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V16a4 4 0 0 1 4-4Z' fill='%23fff'/%3E%3Ccircle cx='32' cy='34' r='14' fill='%230f4c81'/%3E%3Ccircle cx='32' cy='34' r='10' fill='%23a6d8ff'/%3E%3Ccircle cx='24' cy='20' r='3' fill='%230f4c81'/%3E%3Ccircle cx='32' cy='20' r='3' fill='%230f4c81'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, router, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -23,15 +23,13 @@ export default function AppLayout({ children }) {
     const flash = props.flash ?? {};
     const errors = props.errors ?? {};
     const errorMessages = Object.values(errors).flat().filter(Boolean);
+    const csrfToken = typeof document !== 'undefined'
+        ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
+        : '';
 
     useEffect(() => {
         setOpen(false);
     }, [url]);
-
-    const logout = (event) => {
-        event.preventDefault();
-        router.post('/logout');
-    };
 
     return (
         <div className="app-bg">
@@ -111,8 +109,9 @@ export default function AppLayout({ children }) {
                                 <NavLink href="/profile/password" active={current.startsWith('/profile/password')} onClick={() => setOpen(false)}>
                                     Ganti Password
                                 </NavLink>
-                                <form onSubmit={logout}>
-                                    <button className="sidebar-link w-full text-left" type="submit">Logout</button>
+                                <form method="POST" action="/logout">
+                                    <input type="hidden" name="_token" value={csrfToken} />
+                                    <button className="sidebar-link w-full text-left" onClick={() => setOpen(false)} type="submit">Logout</button>
                                 </form>
                             </div>
                         </nav>
@@ -151,7 +150,8 @@ export default function AppLayout({ children }) {
                                 <NavLink href="/profile/password" active={current.startsWith('/profile/password')}>
                                     Ganti Password
                                 </NavLink>
-                                <form onSubmit={logout}>
+                                <form method="POST" action="/logout">
+                                    <input type="hidden" name="_token" value={csrfToken} />
                                     <button className="sidebar-link w-full text-left" type="submit">Logout</button>
                                 </form>
                             </div>
