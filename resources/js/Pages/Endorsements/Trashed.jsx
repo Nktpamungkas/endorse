@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useForm } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
-import Pagination from '@/Components/Pagination';
+import Pagination from '@/components/Pagination';
 import { formatDate } from '@/lib/formatters';
 
 export default function EndorsementsTrashed({ endorsements, filters }) {

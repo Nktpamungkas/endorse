@@ -1,6 +1,6 @@
 import React from 'react';
 import AppLayout from '@/Layouts/AppLayout';
-import EndorsementForm from '@/Components/EndorsementForm';
+import EndorsementForm from '@/components/EndorsementForm';
 
 export default function EndorsementsEdit(props) {
     return (

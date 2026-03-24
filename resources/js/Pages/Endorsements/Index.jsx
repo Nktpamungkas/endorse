@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useForm } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
-import Pagination from '@/Components/Pagination';
+import Pagination from '@/components/Pagination';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 
 function buildQuery(data) {
