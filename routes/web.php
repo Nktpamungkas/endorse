@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EndorsementController;
 use App\Http\Controllers\EndorsementRevisionController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\TotalModalController;
 use App\Http\Controllers\UserManageController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
@@ -19,6 +20,7 @@ Route::get('/ui-demo', function (): Illuminate\View\View {
 
 Route::middleware('single.auth')->group(function (): void {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/total-modal', TotalModalController::class)->name('total-modal.index');
     Route::resource('endorsements', EndorsementController::class);
     Route::get('/endorsements-deleted', [EndorsementController::class, 'trashed'])->name('endorsements.trashed');
     Route::get('/endorsements-deleted/{endorsement}', [EndorsementController::class, 'trashedShow'])->name('endorsements.trashed.show');

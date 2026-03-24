@@ -94,6 +94,9 @@ export default function AppLayout({ children }) {
                                 >
                                     Data Endorse
                                 </NavLink>
+                                <NavLink href="/total-modal" active={current.startsWith('/total-modal')} onClick={() => setOpen(false)}>
+                                    Total Modal
+                                </NavLink>
                                 <NavLink href="/users" active={current.startsWith('/users')} onClick={() => setOpen(false)}>
                                     Kelola User
                                 </NavLink>
@@ -134,6 +137,9 @@ export default function AppLayout({ children }) {
                                 </NavLink>
                                 <NavLink href="/endorsements" active={current.startsWith('/endorsements') && !current.startsWith('/endorsements-deleted')}>
                                     Data Endorse
+                                </NavLink>
+                                <NavLink href="/total-modal" active={current.startsWith('/total-modal')}>
+                                    Total Modal
                                 </NavLink>
                                 <NavLink href="/users" active={current.startsWith('/users')}>
                                     Kelola User
