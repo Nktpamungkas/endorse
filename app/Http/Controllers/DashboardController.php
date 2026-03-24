@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Endorsement;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): View
+    public function __invoke(): Response
     {
         $selectedStatus = request()->query('status_view', 'deal_masuk');
         if (! array_key_exists($selectedStatus, Endorsement::STATUS_OPTIONS)) {
@@ -51,7 +52,7 @@ class DashboardController extends Controller
             ->orderByRaw("FORMAT(created_at, 'yyyy-MM-01')")
             ->get();
 
-        return view('dashboard', [
+        return Inertia::render('Dashboard', [
             'statusCounts' => $statusCounts,
             'totalIncome' => $totalIncome,
             'totalCost' => $totalCost,
@@ -62,6 +63,8 @@ class DashboardController extends Controller
             'selectedStatus' => $selectedStatus,
             'selectedStatusItems' => $selectedStatusItems,
             'statusOptions' => Endorsement::STATUS_OPTIONS,
+            'platformOptions' => Endorsement::PLATFORM_OPTIONS,
+            'paymentStatusOptions' => Endorsement::PAYMENT_STATUS_OPTIONS,
             'monthlyStats' => $monthlyStats,
         ]);
     }

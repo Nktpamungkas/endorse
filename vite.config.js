@@ -7,7 +7,7 @@ export default defineConfig({
     plugins: [
         react(),
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/js/shadcn-demo.tsx'],
+            input: ['resources/css/app.css', 'resources/js/app.jsx', 'resources/js/shadcn-demo.tsx'],
             refresh: true,
         }),
     ],

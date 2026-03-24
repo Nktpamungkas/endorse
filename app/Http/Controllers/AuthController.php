@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class AuthController extends Controller
 {
@@ -96,9 +98,9 @@ class AuthController extends Controller
         return redirect()->route('login.form')->with('success', 'Anda telah logout.');
     }
 
-    public function showPasswordForm(): View
+    public function showPasswordForm(): Response
     {
-        return view('auth.password');
+        return Inertia::render('Profile/Password');
     }
 
     public function updatePassword(Request $request): RedirectResponse

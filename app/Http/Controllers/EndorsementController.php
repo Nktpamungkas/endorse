@@ -10,17 +10,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\View\View;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class EndorsementController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request): View
+    public function index(Request $request): Response
     {
-        $perPage = max(5, min((int) $request->integer('per_page', 50), 100));
+        $perPage = max(5, min((int) $request->integer('per_page', 10), 100));
 
         $query = Endorsement::query()
             ->where('user_id', Auth::id())
@@ -60,23 +58,27 @@ class EndorsementController extends Controller
             }
         }
 
-        $endorsements = $query->paginate($perPage)->withQueryString();
+        $endorsements = $query->paginate($perPage)->withQueryString()
+            ->through(fn (Endorsement $endorsement) => $this->serializeListItem($endorsement));
 
-        return view('endorsements.index', [
+        return Inertia::render('Endorsements/Index', [
             'endorsements' => $endorsements,
             'statusOptions' => Endorsement::STATUS_OPTIONS,
-            'insightFilter' => $insightFilter,
-            'perPage' => $perPage,
+            'paymentStatusOptions' => Endorsement::PAYMENT_STATUS_OPTIONS,
+            'filters' => [
+                'q' => (string) $request->string('q'),
+                'status' => (string) $request->string('status'),
+                'payment_status' => (string) $request->string('payment_status'),
+                'insight' => $insightFilter,
+                'per_page' => $perPage,
+            ],
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(): View
+    public function create(): Response
     {
-        return view('endorsements.create', [
-            'endorsement' => new Endorsement(),
+        return Inertia::render('Endorsements/Create', [
+            'endorsement' => $this->serializeFormEndorsement(new Endorsement()),
             'statusOptions' => Endorsement::STATUS_OPTIONS,
             'platformOptions' => Endorsement::PLATFORM_OPTIONS,
             'contentTypeOptions' => Endorsement::CONTENT_TYPE_OPTIONS,
@@ -85,9 +87,6 @@ class EndorsementController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(EndorsementRequest $request): RedirectResponse
     {
         $payload = $this->buildPayload($request);
@@ -123,28 +122,33 @@ class EndorsementController extends Controller
         return redirect()->route('endorsements.index')->with('success', 'Endorse berhasil ditambahkan.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Endorsement $endorsement): View
+    public function show(Endorsement $endorsement): Response
     {
         $this->assertOwnership($endorsement);
-        $endorsement->load('revisions');
+        $endorsement->load(['revisions', 'deletedBy']);
 
-        return view('endorsements.show', [
-            'endorsement' => $endorsement,
-            'statusOptions' => Endorsement::STATUS_OPTIONS,
+        return Inertia::render('Endorsements/Show', [
+            'endorsement' => $this->serializeDetailEndorsement($endorsement),
+            'revisions' => $endorsement->revisions->map(fn ($revision) => [
+                'id' => $revision->id,
+                'revision_date' => optional($revision->revision_date)->format('Y-m-d'),
+                'uploaded_to_drive' => (bool) $revision->uploaded_to_drive,
+                'is_approved' => (bool) $revision->is_approved,
+                'note' => $revision->note,
+            ])->values(),
+            'logs' => $endorsement->activities()->limit(15)->get()->map(
+                fn (EndorsementActivity $log) => $this->serializeLog($log)
+            )->values(),
+            'isDeletedView' => false,
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Endorsement $endorsement): View
+    public function edit(Endorsement $endorsement): Response
     {
         $this->assertOwnership($endorsement);
-        return view('endorsements.edit', [
-            'endorsement' => $endorsement,
+
+        return Inertia::render('Endorsements/Edit', [
+            'endorsement' => $this->serializeFormEndorsement($endorsement),
             'statusOptions' => Endorsement::STATUS_OPTIONS,
             'platformOptions' => Endorsement::PLATFORM_OPTIONS,
             'contentTypeOptions' => Endorsement::CONTENT_TYPE_OPTIONS,
@@ -153,9 +157,6 @@ class EndorsementController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(EndorsementRequest $request, Endorsement $endorsement): RedirectResponse
     {
         $this->assertOwnership($endorsement);
@@ -180,9 +181,6 @@ class EndorsementController extends Controller
         return redirect()->route('endorsements.show', $endorsement)->with('success', 'Endorse berhasil diupdate.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Request $request, Endorsement $endorsement): RedirectResponse
     {
         $this->assertOwnership($endorsement);
@@ -204,7 +202,7 @@ class EndorsementController extends Controller
         return redirect()->route('endorsements.trashed')->with('success', 'Endorse dipindah ke arsip hapus.');
     }
 
-    public function trashed(Request $request): View
+    public function trashed(Request $request): Response
     {
         $query = Endorsement::onlyTrashed()
             ->where('user_id', Auth::id())
@@ -219,21 +217,34 @@ class EndorsementController extends Controller
             });
         }
 
-        $endorsements = $query->paginate(50)->withQueryString();
+        $endorsements = $query->paginate(20)->withQueryString()
+            ->through(fn (Endorsement $endorsement) => $this->serializeTrashedItem($endorsement));
 
-        return view('endorsements.trashed', [
+        return Inertia::render('Endorsements/Trashed', [
             'endorsements' => $endorsements,
+            'filters' => [
+                'q' => (string) $request->string('q'),
+            ],
         ]);
     }
 
-    public function trashedShow(int $endorsementId): View
+    public function trashedShow(int $endorsementId): Response
     {
         $endorsement = Endorsement::onlyTrashed()->with(['revisions', 'deletedBy'])->findOrFail($endorsementId);
         $this->assertOwnership($endorsement);
 
-        return view('endorsements.show', [
-            'endorsement' => $endorsement,
-            'statusOptions' => Endorsement::STATUS_OPTIONS,
+        return Inertia::render('Endorsements/Show', [
+            'endorsement' => $this->serializeDetailEndorsement($endorsement),
+            'revisions' => $endorsement->revisions->map(fn ($revision) => [
+                'id' => $revision->id,
+                'revision_date' => optional($revision->revision_date)->format('Y-m-d'),
+                'uploaded_to_drive' => (bool) $revision->uploaded_to_drive,
+                'is_approved' => (bool) $revision->is_approved,
+                'note' => $revision->note,
+            ])->values(),
+            'logs' => $endorsement->activities()->limit(15)->get()->map(
+                fn (EndorsementActivity $log) => $this->serializeLog($log)
+            )->values(),
             'isDeletedView' => true,
         ]);
     }
@@ -309,6 +320,135 @@ class EndorsementController extends Controller
             }
             fclose($out);
         }, 200, $headers);
+    }
+
+    private function serializeListItem(Endorsement $endorsement): array
+    {
+        return [
+            'id' => $endorsement->id,
+            'brand_name' => $endorsement->brand_name,
+            'campaign_name' => $endorsement->campaign_name,
+            'platform' => $endorsement->platform,
+            'platform_label' => Endorsement::PLATFORM_OPTIONS[$endorsement->platform] ?? $endorsement->platform,
+            'status' => $endorsement->status,
+            'status_label' => Endorsement::STATUS_OPTIONS[$endorsement->status] ?? $endorsement->status,
+            'posting_date' => optional($endorsement->posting_date)->format('Y-m-d'),
+            'insight_due_at' => optional($endorsement->insight_due_at)->format('Y-m-d'),
+            'insight_sent_at' => optional($endorsement->insight_sent_at)->format('Y-m-d'),
+            'is_insight_overdue' => $endorsement->insight_due_at?->isPast() && ! $endorsement->insight_sent_at,
+            'payment_status' => $endorsement->payment_status,
+            'payment_status_label' => Endorsement::PAYMENT_STATUS_OPTIONS[$endorsement->payment_status] ?? $endorsement->payment_status,
+            'product_cost' => (float) $endorsement->product_cost,
+            'other_cost' => (float) $endorsement->other_cost,
+            'total_cost' => (float) $endorsement->total_cost,
+            'net_profit' => (float) $endorsement->net_profit,
+        ];
+    }
+
+    private function serializeTrashedItem(Endorsement $endorsement): array
+    {
+        return [
+            'id' => $endorsement->id,
+            'brand_name' => $endorsement->brand_name,
+            'campaign_name' => $endorsement->campaign_name,
+            'status_label' => Endorsement::STATUS_OPTIONS[$endorsement->status] ?? $endorsement->status,
+            'deleted_at' => optional($endorsement->deleted_at)->toIso8601String(),
+            'deleted_reason' => $endorsement->deleted_reason,
+            'deleted_by_name' => optional($endorsement->deletedBy)->username,
+        ];
+    }
+
+    private function serializeFormEndorsement(Endorsement $endorsement): array
+    {
+        return [
+            'id' => $endorsement->id,
+            'brand_name' => $endorsement->brand_name,
+            'campaign_name' => $endorsement->campaign_name,
+            'platform' => $endorsement->platform,
+            'content_type' => $endorsement->content_type,
+            'status' => $endorsement->status,
+            'deal_date' => optional($endorsement->deal_date)->format('Y-m-d'),
+            'product_ordered_at' => optional($endorsement->product_ordered_at)->format('Y-m-d'),
+            'product_received_at' => optional($endorsement->product_received_at)->format('Y-m-d'),
+            'draft_deadline' => optional($endorsement->draft_deadline)->format('Y-m-d'),
+            'storyline_required' => (bool) $endorsement->storyline_required,
+            'storyline_done' => (bool) $endorsement->storyline_done,
+            'drive_uploaded' => (bool) $endorsement->drive_uploaded,
+            'approved_at' => optional($endorsement->approved_at)->format('Y-m-d'),
+            'posting_date' => optional($endorsement->posting_date)->format('Y-m-d'),
+            'posted_at' => optional($endorsement->posted_at)->format('Y-m-d'),
+            'insight_due_at' => optional($endorsement->insight_due_at)->format('Y-m-d'),
+            'insight_sent_at' => optional($endorsement->insight_sent_at)->format('Y-m-d'),
+            'boostcode_required' => (bool) $endorsement->boostcode_required,
+            'boostcode_duration_days' => $endorsement->boostcode_duration_days,
+            'self_purchase' => (bool) $endorsement->self_purchase,
+            'checkout_proof_url' => $endorsement->checkout_proof_path ? asset('storage/'.$endorsement->checkout_proof_path) : null,
+            'financial_mode' => $endorsement->financial_mode,
+            'fee_amount' => (string) ($endorsement->fee_amount ?? ''),
+            'reimburse_amount' => (string) ($endorsement->reimburse_amount ?? ''),
+            'product_cost' => (string) ($endorsement->product_cost ?? ''),
+            'other_cost' => (string) ($endorsement->other_cost ?? ''),
+            'payment_status' => $endorsement->payment_status,
+            'payment_due_date' => optional($endorsement->payment_due_date)->format('Y-m-d'),
+            'payment_received_date' => optional($endorsement->payment_received_date)->format('Y-m-d'),
+            'notes' => $endorsement->notes,
+        ];
+    }
+
+    private function serializeDetailEndorsement(Endorsement $endorsement): array
+    {
+        return [
+            ...$this->serializeFormEndorsement($endorsement),
+            'platform_label' => Endorsement::PLATFORM_OPTIONS[$endorsement->platform] ?? $endorsement->platform,
+            'content_type_label' => Endorsement::CONTENT_TYPE_OPTIONS[$endorsement->content_type] ?? $endorsement->content_type,
+            'status_label' => Endorsement::STATUS_OPTIONS[$endorsement->status] ?? $endorsement->status,
+            'storyline_text' => ! $endorsement->storyline_required
+                ? 'Tidak perlu'
+                : ($endorsement->storyline_done ? 'Perlu, sudah selesai' : 'Perlu, belum selesai'),
+            'boostcode_text' => ! $endorsement->boostcode_required
+                ? 'Tidak diminta'
+                : trim(($endorsement->boostcode_duration_days ? $endorsement->boostcode_duration_days.' hari ' : '').($endorsement->boostcode_deadline ? '(sampai '.$endorsement->boostcode_deadline->format('d/m/Y').')' : '')),
+            'financial_mode_label' => Endorsement::FINANCIAL_MODE_OPTIONS[$endorsement->financial_mode] ?? $endorsement->financial_mode,
+            'payment_status_label' => Endorsement::PAYMENT_STATUS_OPTIONS[$endorsement->payment_status] ?? $endorsement->payment_status,
+            'total_income' => (float) $endorsement->total_income,
+            'total_cost' => (float) $endorsement->total_cost,
+            'net_profit' => (float) $endorsement->net_profit,
+            'fee_amount' => (float) $endorsement->fee_amount,
+            'reimburse_amount' => (float) $endorsement->reimburse_amount,
+            'product_cost' => (float) $endorsement->product_cost,
+            'other_cost' => (float) $endorsement->other_cost,
+            'trashed' => $endorsement->trashed(),
+            'deleted_reason' => $endorsement->deleted_reason,
+            'deleted_at' => optional($endorsement->deleted_at)->toIso8601String(),
+            'deleted_by_name' => optional($endorsement->deletedBy)->username,
+        ];
+    }
+
+    private function serializeLog(EndorsementActivity $log): array
+    {
+        $meta = is_array($log->meta) ? $log->meta : [];
+        $lines = [];
+
+        foreach ($meta as $key => $value) {
+            if ($key === 'changes' && is_array($value)) {
+                foreach ($value as $field => $change) {
+                    $from = $change['from'] === null || $change['from'] === '' ? '-' : (string) $change['from'];
+                    $to = $change['to'] === null || $change['to'] === '' ? '-' : (string) $change['to'];
+                    $lines[] = $field.': '.$from.' -> '.$to;
+                }
+
+                continue;
+            }
+
+            $lines[] = $key.': '.(is_array($value) ? json_encode($value) : (string) $value);
+        }
+
+        return [
+            'id' => $log->id,
+            'action_label' => ucfirst(str_replace('_', ' ', $log->action)),
+            'created_at' => $log->created_at?->toIso8601String(),
+            'meta_lines' => $lines,
+        ];
     }
 
     private function buildPayload(EndorsementRequest $request, ?Endorsement $endorsement = null): array

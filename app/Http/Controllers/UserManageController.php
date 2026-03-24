@@ -3,27 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class UserManageController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): Response
     {
         $this->authorizeMaster();
+
         $users = User::query()
             ->when($request->filled('q'), fn ($q) => $q->where('username', 'like', '%'.$request->string('q').'%'))
             ->when($request->filled('role'), fn ($q) => $q->where('role', $request->string('role')))
             ->orderByDesc('role')
             ->orderBy('username')
             ->get();
+
         $onlineUserIds = collect();
 
         if (Schema::hasTable('sessions')) {
@@ -34,10 +37,26 @@ class UserManageController extends Controller
                 ->unique();
         }
 
-        return view('users.index', [
-            'users' => $users,
-            'onlineUserIds' => $onlineUserIds,
-            'query' => $request->all(),
+        return Inertia::render('Users/Index', [
+            'users' => $users->map(fn (User $user) => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'role' => $user->role,
+                'role_label' => $user->role === 'paid' ? 'Berlangganan' : ucfirst($user->role),
+                'trial_ends_at' => $user->trial_ends_at?->format('Y-m-d'),
+                'active' => (bool) $user->active,
+                'is_online' => $onlineUserIds->contains($user->id),
+            ])->values(),
+            'filters' => [
+                'q' => (string) $request->string('q'),
+                'role' => (string) $request->string('role'),
+            ],
+            'stats' => [
+                'total_users' => $users->count(),
+                'trial_count' => $users->where('role', 'trial')->count(),
+                'paid_count' => $users->where('role', 'paid')->count(),
+                'online_count' => $onlineUserIds->count(),
+            ],
         ]);
     }
 
@@ -51,10 +70,9 @@ class UserManageController extends Controller
             'role' => ['nullable', 'in:trial,paid'],
         ]);
 
-        // Pastikan kolom email terisi unik agar tidak bentrok dengan constraint database.
         $email = $request->input('email');
         if (empty($email)) {
-            $email = $data['username'] . '@trial.local';
+            $email = $data['username'].'@trial.local';
         }
 
         $role = $data['role'] ?? 'trial';
@@ -113,7 +131,6 @@ class UserManageController extends Controller
                 }
             }
 
-            // Hapus data terkait user
             $user->endorsementRevisions()->delete();
             $user->endorsements()->delete();
             $user->delete();
