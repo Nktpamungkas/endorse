@@ -94,6 +94,9 @@ export default function AppLayout({ children }) {
                                 >
                                     Data Endorse
                                 </NavLink>
+                                <NavLink href="/endorsement-files" active={current.startsWith('/endorsement-files')} onClick={() => setOpen(false)}>
+                                    Penyimpanan File
+                                </NavLink>
                                 <NavLink href="/total-modal" active={current.startsWith('/total-modal')} onClick={() => setOpen(false)}>
                                     Total Modal
                                 </NavLink>
@@ -137,6 +140,9 @@ export default function AppLayout({ children }) {
                                 </NavLink>
                                 <NavLink href="/endorsements" active={current.startsWith('/endorsements') && !current.startsWith('/endorsements-deleted')}>
                                     Data Endorse
+                                </NavLink>
+                                <NavLink href="/endorsement-files" active={current.startsWith('/endorsement-files')}>
+                                    Penyimpanan File
                                 </NavLink>
                                 <NavLink href="/total-modal" active={current.startsWith('/total-modal')}>
                                     Total Modal

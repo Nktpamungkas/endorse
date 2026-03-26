@@ -224,6 +224,9 @@ export default function EndorsementsIndex({
                                         </td>
                                         <td className="py-3 text-right whitespace-nowrap">
                                             <div className="inline-flex items-center gap-2">
+                                                <Link href={`/endorsement-files?endorsement_id=${item.id}`} className="inline-flex items-center justify-center rounded-xl border border-border px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-muted">
+                                                    File
+                                                </Link>
                                                 <Link href={`/endorsements/${item.id}`} className="inline-flex items-center justify-center rounded-xl border border-border px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-muted">
                                                     Detail
                                                 </Link>
@@ -277,7 +280,10 @@ export default function EndorsementsIndex({
                                         </p>
                                     </div>
                                 </div>
-                                <div className="mt-4 grid grid-cols-2 gap-2">
+                                <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                                    <Link href={`/endorsement-files?endorsement_id=${item.id}`} className="inline-flex items-center justify-center rounded-xl border border-border px-3 py-2 text-sm font-semibold text-foreground transition hover:bg-muted">
+                                        File
+                                    </Link>
                                     <Link href={`/endorsements/${item.id}`} className="inline-flex items-center justify-center rounded-xl border border-border px-3 py-2 text-sm font-semibold text-foreground transition hover:bg-muted">
                                         Detail
                                     </Link>

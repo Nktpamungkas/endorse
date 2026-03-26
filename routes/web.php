@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EndorsementController;
+use App\Http\Controllers\EndorsementFileController;
 use App\Http\Controllers\EndorsementRevisionController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\TotalModalController;
@@ -21,7 +22,12 @@ Route::get('/ui-demo', function (): Illuminate\View\View {
 Route::middleware('single.auth')->group(function (): void {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::get('/total-modal', TotalModalController::class)->name('total-modal.index');
+    Route::get('/endorsement-files', [EndorsementFileController::class, 'index'])->name('endorsement-files.index');
     Route::resource('endorsements', EndorsementController::class);
+    Route::post('/endorsements/{endorsement}/files', [EndorsementFileController::class, 'store'])->name('endorsement-files.store');
+    Route::get('/endorsement-files/{endorsementFile}/preview', [EndorsementFileController::class, 'preview'])->name('endorsement-files.preview');
+    Route::get('/endorsement-files/{endorsementFile}/download', [EndorsementFileController::class, 'download'])->name('endorsement-files.download');
+    Route::delete('/endorsement-files/{endorsementFile}', [EndorsementFileController::class, 'destroy'])->name('endorsement-files.destroy');
     Route::get('/endorsements-deleted', [EndorsementController::class, 'trashed'])->name('endorsements.trashed');
     Route::get('/endorsements-deleted/{endorsement}', [EndorsementController::class, 'trashedShow'])->name('endorsements.trashed.show');
     Route::post('/endorsements/{endorsement}/revisions', [EndorsementRevisionController::class, 'store'])

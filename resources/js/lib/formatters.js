@@ -2,6 +2,20 @@ export function formatCurrency(value) {
     return `Rp ${new Intl.NumberFormat('id-ID').format(Number(value || 0))}`;
 }
 
+export function formatBytes(value) {
+    const size = Number(value || 0);
+
+    if (!size) {
+        return '0 B';
+    }
+
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const index = Math.min(Math.floor(Math.log(size) / Math.log(1024)), units.length - 1);
+    const amount = size / (1024 ** index);
+
+    return `${amount >= 10 || index === 0 ? amount.toFixed(0) : amount.toFixed(1)} ${units[index]}`;
+}
+
 export function formatDate(value, options = {}) {
     if (!value) {
         return '-';

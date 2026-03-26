@@ -1,12 +1,17 @@
 import React from 'react';
 import { Link, router, useForm } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
-import { formatCurrency, formatDate } from '@/lib/formatters';
+import EndorsementFileBrowser from '@/components/EndorsementFileBrowser';
+import EndorsementFileUploadCard from '@/components/EndorsementFileUploadCard';
+import { formatBytes, formatCurrency, formatDate } from '@/lib/formatters';
 
 export default function EndorsementsShow({
     endorsement,
     revisions,
     logs,
+    files,
+    fileSummary,
+    maxUploadMb,
     isDeletedView = false,
 }) {
     const revisionForm = useForm({
@@ -134,6 +139,61 @@ export default function EndorsementsShow({
                 <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
                     <h2 className="text-base font-semibold text-foreground">Catatan</h2>
                     <p className="mt-3 text-sm text-foreground">{endorsement.notes || '-'}</p>
+                </section>
+
+                <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                            <h2 className="text-base font-semibold text-foreground">File Endorse</h2>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Simpan draft, foto, video, dan dokumen campaign di satu tempat yang mudah diakses dari HP maupun laptop.
+                            </p>
+                        </div>
+                        <div className="flex flex-col gap-2 text-sm md:items-end">
+                            <div className="inline-flex items-center gap-2 rounded-full bg-muted/50 px-3 py-1 text-xs text-muted-foreground">
+                                {fileSummary.total_count} file · {formatBytes(fileSummary.total_size)}
+                            </div>
+                            <Link
+                                href={`/endorsement-files?endorsement_id=${endorsement.id}`}
+                                className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-muted"
+                            >
+                                Buka pusat file
+                            </Link>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[380px_1fr]">
+                        {!isDeletedView && (
+                            <EndorsementFileUploadCard
+                                fixedEndorsementId={endorsement.id}
+                                endorsementOptions={[
+                                    {
+                                        value: String(endorsement.id),
+                                        label: `${endorsement.brand_name} - ${endorsement.campaign_name || 'Tanpa campaign'}`,
+                                        is_deleted: false,
+                                    },
+                                ]}
+                                maxUploadMb={maxUploadMb}
+                                title="Upload ke endorse ini"
+                                description="Gunakan untuk simpan bahan kerja sementara tanpa mengurangi kualitas file."
+                            />
+                        )}
+
+                        <div className={isDeletedView ? 'xl:col-span-2' : ''}>
+                            {fileSummary.total_count > fileSummary.showing_count && (
+                                <div className="mb-3 rounded-2xl border border-border bg-muted/20 px-3 py-3 text-sm text-muted-foreground">
+                                    Menampilkan {fileSummary.showing_count} file terbaru dari total {fileSummary.total_count} file.
+                                </div>
+                            )}
+                            <EndorsementFileBrowser
+                                allowDelete
+                                compact
+                                files={files}
+                                showEndorsement={false}
+                                emptyMessage="Belum ada file tersimpan untuk endorse ini."
+                            />
+                        </div>
+                    </div>
                 </section>
 
                 <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
