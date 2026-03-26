@@ -1,6 +1,6 @@
 import React, { useId, useMemo, useRef, useState } from 'react';
 import { useForm } from '@inertiajs/react';
-import { FolderOpen, HardDrive, Upload, X } from 'lucide-react';
+import { AlertCircle, FolderOpen, HardDrive, Upload, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatBytes } from '@/lib/formatters';
 
@@ -8,8 +8,8 @@ export default function EndorsementFileUploadCard({
     defaultEndorsementId = '',
     endorsementOptions = [],
     fixedEndorsementId = null,
-    maxUploadMb = 512,
-    maxFilesPerRequest = 20,
+    maxUploadMb = 2048,
+    maxFilesPerRequest = 50,
     title = 'Upload file',
     description = 'Simpan foto, video, draft, dan dokumen campaign tanpa kompresi.',
     disabled = false,
@@ -19,12 +19,11 @@ export default function EndorsementFileUploadCard({
     const inputRef = useRef(null);
     const mobileInputRef = useRef(null);
     const [dragActive, setDragActive] = useState(false);
+    const [selectedFiles, setSelectedFiles] = useState([]);
     const [selectedEndorsementId, setSelectedEndorsementId] = useState(
         fixedEndorsementId ? String(fixedEndorsementId) : String(defaultEndorsementId || ''),
     );
-    const form = useForm({
-        files: [],
-    });
+    const form = useForm({});
 
     const currentEndorsementId = fixedEndorsementId ? String(fixedEndorsementId) : selectedEndorsementId;
     const currentEndorsement = useMemo(
@@ -32,14 +31,19 @@ export default function EndorsementFileUploadCard({
         [endorsementOptions, currentEndorsementId],
     );
     const uploadDisabled = disabled || !currentEndorsementId || currentEndorsement?.is_deleted;
+    const totalSelectedSize = useMemo(
+        () => selectedFiles.reduce((total, file) => total + Number(file.size || 0), 0),
+        [selectedFiles],
+    );
+    const visibleFiles = selectedFiles.slice(0, 8);
 
     const setFiles = (fileList) => {
         const files = Array.from(fileList || []).slice(0, maxFilesPerRequest);
-        form.setData('files', files);
+        setSelectedFiles(files);
     };
 
     const resetSelectedFiles = () => {
-        form.setData('files', []);
+        setSelectedFiles([]);
         if (inputRef.current) {
             inputRef.current.value = '';
         }
@@ -51,15 +55,18 @@ export default function EndorsementFileUploadCard({
     const submit = (event) => {
         event.preventDefault();
 
-        if (uploadDisabled || form.data.files.length === 0) {
+        if (uploadDisabled || selectedFiles.length === 0) {
             return;
         }
 
-        form.post(`/endorsements/${currentEndorsementId}/files`, {
+        form.transform(() => ({
+            files: selectedFiles,
+        })).post(`/endorsements/${currentEndorsementId}/files`, {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
                 resetSelectedFiles();
+                form.reset();
             },
         });
     };
@@ -132,7 +139,7 @@ export default function EndorsementFileUploadCard({
                             <FolderOpen className="mr-2 h-4 w-4" />
                             Pilih file
                         </label>
-                        {form.data.files.length > 0 && (
+                        {selectedFiles.length > 0 && (
                             <button
                                 className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-muted"
                                 onClick={resetSelectedFiles}
@@ -172,20 +179,24 @@ export default function EndorsementFileUploadCard({
                     </div>
                 </div>
 
-                {form.data.files.length > 0 && (
+                {selectedFiles.length > 0 && (
                     <div className="rounded-2xl border border-border bg-muted/20 p-3">
                         <div className="mb-3 flex items-center justify-between gap-3">
                             <div>
                                 <p className="text-sm font-semibold text-foreground">Siap diupload</p>
-                                <p className="text-xs text-muted-foreground">{form.data.files.length} file dipilih</p>
+                                <p className="text-xs text-muted-foreground">{selectedFiles.length} file dipilih - belum diupload</p>
                             </div>
                             <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs text-muted-foreground">
                                 <HardDrive className="h-3.5 w-3.5" />
-                                {formatBytes(form.data.files.reduce((total, file) => total + Number(file.size || 0), 0))}
+                                {formatBytes(totalSelectedSize)}
                             </div>
                         </div>
+                        <div className="mb-3 inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                            <AlertCircle className="h-3.5 w-3.5" />
+                            File sudah terbaca browser dan siap diupload saat Anda tekan tombol upload.
+                        </div>
                         <div className="space-y-2">
-                            {form.data.files.map((file, index) => (
+                            {visibleFiles.map((file, index) => (
                                 <div key={`${file.name}-${index}`} className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-3">
                                     <div className="min-w-0">
                                         <p className="truncate text-sm font-medium text-foreground">{file.name}</p>
@@ -194,8 +205,8 @@ export default function EndorsementFileUploadCard({
                                     <button
                                         className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:bg-muted"
                                         onClick={() => {
-                                            const nextFiles = form.data.files.filter((_, fileIndex) => fileIndex !== index);
-                                            form.setData('files', nextFiles);
+                                            const nextFiles = selectedFiles.filter((_, fileIndex) => fileIndex !== index);
+                                            setSelectedFiles(nextFiles);
                                         }}
                                         type="button"
                                     >
@@ -203,6 +214,11 @@ export default function EndorsementFileUploadCard({
                                     </button>
                                 </div>
                             ))}
+                            {selectedFiles.length > visibleFiles.length && (
+                                <div className="rounded-2xl border border-dashed border-border px-3 py-3 text-sm text-muted-foreground">
+                                    +{selectedFiles.length - visibleFiles.length} file lain sudah dipilih dan tetap akan ikut diupload.
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -222,6 +238,9 @@ export default function EndorsementFileUploadCard({
                 {disabledReason && (
                     <p className="text-xs text-muted-foreground">{disabledReason}</p>
                 )}
+                {form.errors.files && (
+                    <p className="text-xs text-red-600">{form.errors.files}</p>
+                )}
                 {!fixedEndorsementId && currentEndorsement?.is_deleted && (
                     <p className="text-xs text-amber-700">Upload baru hanya untuk endorse yang masih aktif.</p>
                 )}
@@ -232,10 +251,10 @@ export default function EndorsementFileUploadCard({
                     </p>
                     <button
                         className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-                        disabled={uploadDisabled || form.processing || form.data.files.length === 0}
+                        disabled={uploadDisabled || form.processing || selectedFiles.length === 0}
                         type="submit"
                     >
-                        {form.processing ? 'Mengupload...' : 'Upload sekarang'}
+                        {form.processing ? 'Mengupload...' : `Upload sekarang${selectedFiles.length ? ` (${selectedFiles.length})` : ''}`}
                     </button>
                 </div>
             </form>
