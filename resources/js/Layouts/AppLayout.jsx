@@ -33,8 +33,8 @@ export default function AppLayout({ children }) {
 
     return (
         <div className="app-bg">
-            <div className="sticky top-0 z-40 border-b border-border bg-white/90 backdrop-blur lg:hidden">
-                <div className="flex items-center justify-between gap-3 px-4 py-3">
+            <div className="mobile-safe-top sticky top-0 z-40 border-b border-border bg-white/90 backdrop-blur lg:hidden">
+                <div className="mobile-safe-x flex items-center justify-between gap-3 px-4 py-3">
                     <div className="flex items-center gap-2">
                         <button
                             aria-label="Buka menu"
@@ -66,7 +66,7 @@ export default function AppLayout({ children }) {
             {open && (
                 <div className="mobile-menu lg:hidden">
                     <div className="mobile-menu-overlay" onClick={() => setOpen(false)} />
-                    <div className="mobile-menu-sheet">
+                    <div className="mobile-menu-sheet mobile-safe-bottom">
                         <div className="flex items-center justify-between border-b border-border px-4 py-4">
                             <div>
                                 <div className="text-sm font-semibold text-foreground">Endorse Tracker</div>

@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Endorse Tracker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,6 +18,7 @@
             --bg-end: #fff6ec;
         }
         body {
+            min-height: 100dvh;
             font-family: "Plus Jakarta Sans", sans-serif;
             color: var(--ink);
             background: radial-gradient(circle at 10% 10%, #deecff 0%, transparent 35%),

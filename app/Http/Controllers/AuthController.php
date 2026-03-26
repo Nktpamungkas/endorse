@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -12,7 +13,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use Illuminate\View\View;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,13 +22,19 @@ class AuthController extends Controller
     private int $loginWindowMinutes = 15;
     private int $lockMinutes = 15;
 
-    public function showLoginForm(Request $request): View|RedirectResponse
+    public function showLoginForm(Request $request): HttpResponse|RedirectResponse
     {
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
 
-        return view('auth.login');
+        $request->session()->regenerateToken();
+
+        return response()
+            ->view('auth.login')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Fri, 01 Jan 1990 00:00:00 GMT');
     }
 
     public function login(Request $request): RedirectResponse

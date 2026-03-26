@@ -14,11 +14,28 @@ class ExampleTest extends TestCase
     /**
      * A basic test example.
      */
-    public function test_root_redirects_to_login_when_not_authenticated(): void
+    public function test_root_shows_landing_page(): void
     {
         $response = $this->get('/');
 
-        $response->assertRedirect(route('login.form'));
+        $response
+            ->assertOk()
+            ->assertSee('Endorse Tracker');
+    }
+
+    public function test_login_page_disables_browser_cache(): void
+    {
+        $response = $this->get(route('login.form'));
+
+        $response
+            ->assertOk()
+            ->assertHeader('Pragma', 'no-cache');
+
+        $cacheControl = (string) $response->headers->get('Cache-Control');
+
+        $this->assertStringContainsString('no-store', $cacheControl);
+        $this->assertStringContainsString('no-cache', $cacheControl);
+        $this->assertStringContainsString('must-revalidate', $cacheControl);
     }
 
     public function test_single_user_can_login_and_access_dashboard(): void
