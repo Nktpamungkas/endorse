@@ -19,6 +19,7 @@ class EndorsementFileController extends Controller
     public function index(Request $request): InertiaResponse
     {
         $perPage = max(10, min((int) $request->integer('per_page', 10), 100));
+        $storageStats = $this->resolveStorageStats();
         $baseQuery = EndorsementFile::query()
             ->with(['endorsement'])
             ->whereHas('endorsement', fn ($query) => $query->where('user_id', Auth::id()))
@@ -67,6 +68,12 @@ class EndorsementFileController extends Controller
                 'total_size' => $totalSize,
                 'endorsements_with_files' => $endorsementsWithFiles,
                 'latest_upload_at' => $latestUpload?->created_at?->toIso8601String(),
+                'storage_total_bytes' => $storageStats['total_bytes'],
+                'storage_free_bytes' => $storageStats['free_bytes'],
+                'storage_used_bytes' => $storageStats['used_bytes'],
+                'storage_used_percentage' => $storageStats['used_percentage'],
+                'storage_root' => $storageStats['root'],
+                'storage_available' => $storageStats['available'],
             ],
             'endorsementOptions' => Endorsement::withTrashed()
                 ->where('user_id', Auth::id())
@@ -290,5 +297,61 @@ class EndorsementFileController extends Controller
     private function maxUploadMb(): int
     {
         return max(1, (int) config('endorsement-files.max_upload_mb', 512));
+    }
+
+    /**
+     * @return array{
+     *     total_bytes:int|null,
+     *     free_bytes:int|null,
+     *     used_bytes:int|null,
+     *     used_percentage:float|null,
+     *     root:string|null,
+     *     available:bool
+     * }
+     */
+    private function resolveStorageStats(): array
+    {
+        $disk = (string) config('endorsement-files.disk', 'local');
+        $root = config('filesystems.disks.'.$disk.'.root');
+
+        if (! is_string($root) || $root === '') {
+            return [
+                'total_bytes' => null,
+                'free_bytes' => null,
+                'used_bytes' => null,
+                'used_percentage' => null,
+                'root' => null,
+                'available' => false,
+            ];
+        }
+
+        $resolvedRoot = realpath($root) ?: $root;
+        $totalBytes = @disk_total_space($resolvedRoot);
+        $freeBytes = @disk_free_space($resolvedRoot);
+
+        if (! is_numeric($totalBytes) || ! is_numeric($freeBytes)) {
+            return [
+                'total_bytes' => null,
+                'free_bytes' => null,
+                'used_bytes' => null,
+                'used_percentage' => null,
+                'root' => $resolvedRoot,
+                'available' => false,
+            ];
+        }
+
+        $usedBytes = max(0, (int) $totalBytes - (int) $freeBytes);
+        $usedPercentage = (int) $totalBytes > 0
+            ? round(($usedBytes / (int) $totalBytes) * 100, 1)
+            : null;
+
+        return [
+            'total_bytes' => (int) $totalBytes,
+            'free_bytes' => (int) $freeBytes,
+            'used_bytes' => $usedBytes,
+            'used_percentage' => $usedPercentage,
+            'root' => $resolvedRoot,
+            'available' => true,
+        ];
     }
 }

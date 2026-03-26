@@ -66,7 +66,9 @@ export default function EndorsementFilesIndex({
                     </div>
                     <div className="inline-flex items-center gap-2 rounded-2xl border border-border bg-white px-4 py-2 text-sm text-muted-foreground shadow-sm">
                         <HardDrive className="h-4 w-4" />
-                        Server terpakai {formatBytes(stats.total_size)}
+                        {stats.storage_available
+                            ? `Sisa VPS ${formatBytes(stats.storage_free_bytes)}`
+                            : 'Statistik storage VPS belum tersedia'}
                     </div>
                 </div>
 
@@ -80,6 +82,30 @@ export default function EndorsementFilesIndex({
                         note="Aktivitas terbaru di penyimpanan"
                     />
                 </div>
+
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <SummaryCard
+                        label="Kapasitas disk"
+                        value={stats.storage_available ? formatBytes(stats.storage_total_bytes) : '-'}
+                        note={stats.storage_available ? 'Total kapasitas disk tempat file endorse disimpan' : 'Belum bisa membaca kapasitas disk server'}
+                    />
+                    <SummaryCard
+                        label="Sisa storage VPS"
+                        value={stats.storage_available ? formatBytes(stats.storage_free_bytes) : '-'}
+                        note={stats.storage_available ? 'Ruang kosong aktual pada disk server' : 'Pastikan disk storage lokal bisa dibaca server'}
+                    />
+                    <SummaryCard
+                        label="Pemakaian disk"
+                        value={stats.storage_available ? `${stats.storage_used_percentage}%` : '-'}
+                        note={stats.storage_available ? `Terpakai ${formatBytes(stats.storage_used_bytes)} dari kapasitas disk` : 'Statistik pemakaian disk belum tersedia'}
+                    />
+                </div>
+
+                {stats.storage_available && stats.storage_root && (
+                    <div className="rounded-2xl border border-border bg-white px-4 py-3 text-xs text-muted-foreground shadow-sm">
+                        Disk yang dibaca: <span className="font-medium text-foreground">{stats.storage_root}</span>
+                    </div>
+                )}
 
                 <EndorsementFileUploadCard
                     defaultEndorsementId={filters.endorsement_id}
