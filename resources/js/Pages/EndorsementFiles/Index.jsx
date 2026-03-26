@@ -6,6 +6,7 @@ import EndorsementFileBrowser from '@/components/EndorsementFileBrowser';
 import EndorsementFileUploadCard from '@/components/EndorsementFileUploadCard';
 import Pagination from '@/components/Pagination';
 import { formatBytes, formatDate } from '@/lib/formatters';
+import { cn } from '@/lib/utils';
 
 function buildQuery(data) {
     return Object.fromEntries(
@@ -19,6 +20,7 @@ export default function EndorsementFilesIndex({
     stats,
     endorsementOptions,
     categoryOptions,
+    sortOptions,
     maxUploadMb,
     maxFilesPerRequest,
 }) {
@@ -26,6 +28,7 @@ export default function EndorsementFilesIndex({
         q: filters.q ?? '',
         endorsement_id: filters.endorsement_id ?? '',
         category: filters.category ?? '',
+        sort: filters.sort ?? 'latest',
         per_page: String(filters.per_page ?? 10),
     });
 
@@ -107,6 +110,63 @@ export default function EndorsementFilesIndex({
                     </div>
                 )}
 
+                {stats.storage_available && (
+                    <section className="rounded-3xl border border-border bg-white p-4 shadow-sm">
+                        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                            <div>
+                                <p className="text-sm font-semibold text-foreground">Kapasitas disk server</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Progress ini menunjukkan kondisi disk VPS tempat file endorse disimpan.
+                                </p>
+                            </div>
+                            <div className={cn(
+                                'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold',
+                                stats.alert_level === 'critical' && 'bg-red-100 text-red-700',
+                                stats.alert_level === 'warning' && 'bg-amber-100 text-amber-700',
+                                stats.alert_level === 'normal' && 'bg-emerald-100 text-emerald-700',
+                            )}>
+                                {stats.alert_level === 'critical' && 'Storage hampir penuh'}
+                                {stats.alert_level === 'warning' && 'Storage mulai menipis'}
+                                {stats.alert_level === 'normal' && 'Storage masih aman'}
+                            </div>
+                        </div>
+
+                        <div className="mt-4">
+                            <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+                                <span className="font-medium text-foreground">
+                                    Terpakai {formatBytes(stats.storage_used_bytes)} dari {formatBytes(stats.storage_total_bytes)}
+                                </span>
+                                <span className="text-muted-foreground">{stats.storage_used_percentage}%</span>
+                            </div>
+                            <div className="h-3 overflow-hidden rounded-full bg-muted">
+                                <div
+                                    className={cn(
+                                        'h-full rounded-full transition-all',
+                                        stats.alert_level === 'critical' && 'bg-red-500',
+                                        stats.alert_level === 'warning' && 'bg-amber-500',
+                                        stats.alert_level === 'normal' && 'bg-primary',
+                                    )}
+                                    style={{ width: `${Math.min(Number(stats.storage_used_percentage || 0), 100)}%` }}
+                                />
+                            </div>
+                            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                                <span>Sisa {formatBytes(stats.storage_free_bytes)} ({stats.free_percentage}% kosong)</span>
+                                <span>Terpakai fitur file endorse: {formatBytes(stats.total_size)}</span>
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                {stats.storage_available && stats.alert_message && (
+                    <div className={cn(
+                        'rounded-2xl border px-4 py-3 text-sm',
+                        stats.alert_level === 'critical' && 'border-red-200 bg-red-50 text-red-700',
+                        stats.alert_level === 'warning' && 'border-amber-200 bg-amber-50 text-amber-700',
+                    )}>
+                        {stats.alert_message}
+                    </div>
+                )}
+
                 <EndorsementFileUploadCard
                     defaultEndorsementId={filters.endorsement_id}
                     endorsementOptions={endorsementOptions}
@@ -160,6 +220,18 @@ export default function EndorsementFilesIndex({
                             </select>
                         </div>
                         <div>
+                            <label className="mb-2 block text-sm font-medium text-foreground">Urutkan</label>
+                            <select
+                                className="w-full rounded-xl border border-border px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+                                onChange={(event) => filterForm.setData('sort', event.target.value)}
+                                value={filterForm.data.sort}
+                            >
+                                {sortOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>{option.label}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
                             <label className="mb-2 block text-sm font-medium text-foreground">Per halaman</label>
                             <select
                                 className="w-full rounded-xl border border-border px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
@@ -199,7 +271,7 @@ export default function EndorsementFilesIndex({
                         <div>
                             <p className="text-sm font-semibold text-foreground">Daftar file</p>
                             <p className="text-xs text-muted-foreground">
-                                Gunakan preview untuk cek isi cepat, lalu download jika perlu edit ulang di perangkat lain.
+                                Gunakan preview untuk cek isi cepat. Pilih urutan file terbesar supaya lebih gampang bersih-bersih storage.
                             </p>
                         </div>
                     </div>

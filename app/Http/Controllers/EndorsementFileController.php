@@ -20,10 +20,10 @@ class EndorsementFileController extends Controller
     {
         $perPage = max(10, min((int) $request->integer('per_page', 10), 100));
         $storageStats = $this->resolveStorageStats();
+        $sort = (string) $request->string('sort', 'latest');
         $baseQuery = EndorsementFile::query()
             ->with(['endorsement'])
-            ->whereHas('endorsement', fn ($query) => $query->where('user_id', Auth::id()))
-            ->latest();
+            ->whereHas('endorsement', fn ($query) => $query->where('user_id', Auth::id()));
 
         if ($request->filled('q')) {
             $keyword = (string) $request->string('q');
@@ -44,6 +44,13 @@ class EndorsementFileController extends Controller
             $baseQuery->where('category', (string) $request->string('category'));
         }
 
+        match ($sort) {
+            'oldest' => $baseQuery->orderBy('created_at')->orderBy('id'),
+            'largest' => $baseQuery->orderByDesc('size_bytes')->orderByDesc('created_at'),
+            'smallest' => $baseQuery->orderBy('size_bytes')->orderByDesc('created_at'),
+            default => $baseQuery->orderByDesc('created_at')->orderByDesc('id'),
+        };
+
         $summaryQuery = clone $baseQuery;
         $totalFiles = (clone $summaryQuery)->count();
         $totalSize = (int) (clone $summaryQuery)->sum('size_bytes');
@@ -61,6 +68,7 @@ class EndorsementFileController extends Controller
                 'q' => (string) $request->string('q'),
                 'endorsement_id' => $request->filled('endorsement_id') ? (string) $request->integer('endorsement_id') : '',
                 'category' => (string) $request->string('category'),
+                'sort' => $sort,
                 'per_page' => $perPage,
             ],
             'stats' => [
@@ -88,6 +96,12 @@ class EndorsementFileController extends Controller
             'categoryOptions' => collect(EndorsementFile::CATEGORY_LABELS)
                 ->map(fn (string $label, string $value) => ['value' => $value, 'label' => $label])
                 ->values(),
+            'sortOptions' => [
+                ['value' => 'latest', 'label' => 'Terbaru dulu'],
+                ['value' => 'oldest', 'label' => 'Terlama dulu'],
+                ['value' => 'largest', 'label' => 'File terbesar'],
+                ['value' => 'smallest', 'label' => 'File terkecil'],
+            ],
             'maxUploadMb' => $this->maxUploadMb(),
             'maxFilesPerRequest' => max(1, (int) config('endorsement-files.max_files_per_request', 20)),
         ]);
@@ -305,6 +319,9 @@ class EndorsementFileController extends Controller
      *     free_bytes:int|null,
      *     used_bytes:int|null,
      *     used_percentage:float|null,
+     *     free_percentage:float|null,
+     *     alert_level:string,
+     *     alert_message:string|null,
      *     root:string|null,
      *     available:bool
      * }
@@ -320,6 +337,9 @@ class EndorsementFileController extends Controller
                 'free_bytes' => null,
                 'used_bytes' => null,
                 'used_percentage' => null,
+                'free_percentage' => null,
+                'alert_level' => 'unknown',
+                'alert_message' => null,
                 'root' => null,
                 'available' => false,
             ];
@@ -335,6 +355,9 @@ class EndorsementFileController extends Controller
                 'free_bytes' => null,
                 'used_bytes' => null,
                 'used_percentage' => null,
+                'free_percentage' => null,
+                'alert_level' => 'unknown',
+                'alert_message' => null,
                 'root' => $resolvedRoot,
                 'available' => false,
             ];
@@ -344,12 +367,28 @@ class EndorsementFileController extends Controller
         $usedPercentage = (int) $totalBytes > 0
             ? round(($usedBytes / (int) $totalBytes) * 100, 1)
             : null;
+        $freePercentage = (int) $totalBytes > 0
+            ? round(((int) $freeBytes / (int) $totalBytes) * 100, 1)
+            : null;
+        $alertLevel = 'normal';
+        $alertMessage = null;
+
+        if ($freePercentage !== null && $freePercentage <= 10) {
+            $alertLevel = 'critical';
+            $alertMessage = 'Sisa storage VPS sudah sangat sedikit. Sebaiknya hapus file besar yang sudah tidak dipakai.';
+        } elseif ($freePercentage !== null && $freePercentage <= 20) {
+            $alertLevel = 'warning';
+            $alertMessage = 'Sisa storage VPS mulai menipis. Pantau file video atau arsip yang ukurannya besar.';
+        }
 
         return [
             'total_bytes' => (int) $totalBytes,
             'free_bytes' => (int) $freeBytes,
             'used_bytes' => $usedBytes,
             'used_percentage' => $usedPercentage,
+            'free_percentage' => $freePercentage,
+            'alert_level' => $alertLevel,
+            'alert_message' => $alertMessage,
             'root' => $resolvedRoot,
             'available' => true,
         ];
