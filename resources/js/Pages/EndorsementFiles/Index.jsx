@@ -16,6 +16,7 @@ function buildQuery(data) {
 
 export default function EndorsementFilesIndex({
     files,
+    largestFiles,
     filters,
     stats,
     endorsementOptions,
@@ -166,6 +167,26 @@ export default function EndorsementFilesIndex({
                         {stats.alert_message}
                     </div>
                 )}
+
+                <section className="rounded-3xl border border-border bg-white p-4 shadow-sm">
+                    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-sm font-semibold text-foreground">10 file terbesar</p>
+                            <p className="text-xs text-muted-foreground">
+                                Ringkasan cepat untuk cek file yang paling banyak makan storage, lalu langsung download atau hapus jika sudah tidak dipakai.
+                            </p>
+                        </div>
+                        <div className="inline-flex items-center gap-2 rounded-full bg-muted/50 px-3 py-1 text-xs text-muted-foreground">
+                            Prioritas bersih-bersih storage
+                        </div>
+                    </div>
+
+                    <EndorsementFileBrowser
+                        compact
+                        files={largestFiles}
+                        emptyMessage="Belum ada file besar tersimpan."
+                    />
+                </section>
 
                 <EndorsementFileUploadCard
                     defaultEndorsementId={filters.endorsement_id}

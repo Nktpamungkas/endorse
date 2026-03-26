@@ -56,6 +56,15 @@ class EndorsementFileController extends Controller
         $totalSize = (int) (clone $summaryQuery)->sum('size_bytes');
         $endorsementsWithFiles = (clone $summaryQuery)->distinct('endorsement_id')->count('endorsement_id');
         $latestUpload = (clone $summaryQuery)->first();
+        $largestFiles = EndorsementFile::query()
+            ->with(['endorsement'])
+            ->whereHas('endorsement', fn ($query) => $query->where('user_id', Auth::id()))
+            ->orderByDesc('size_bytes')
+            ->orderByDesc('created_at')
+            ->limit(10)
+            ->get()
+            ->map(fn (EndorsementFile $file) => $this->serializeFile($file))
+            ->values();
 
         $files = $baseQuery
             ->paginate($perPage)
@@ -64,6 +73,7 @@ class EndorsementFileController extends Controller
 
         return Inertia::render('EndorsementFiles/Index', [
             'files' => $files,
+            'largestFiles' => $largestFiles,
             'filters' => [
                 'q' => (string) $request->string('q'),
                 'endorsement_id' => $request->filled('endorsement_id') ? (string) $request->integer('endorsement_id') : '',
@@ -103,7 +113,7 @@ class EndorsementFileController extends Controller
                 ['value' => 'smallest', 'label' => 'File terkecil'],
             ],
             'maxUploadMb' => $this->maxUploadMb(),
-            'maxFilesPerRequest' => max(1, (int) config('endorsement-files.max_files_per_request', 20)),
+            'maxFilesPerRequest' => max(1, (int) config('endorsement-files.max_files_per_request', 50)),
         ]);
     }
 
@@ -116,7 +126,7 @@ class EndorsementFileController extends Controller
         }
 
         $maxUploadMb = $this->maxUploadMb();
-        $maxFilesPerRequest = max(1, (int) config('endorsement-files.max_files_per_request', 20));
+        $maxFilesPerRequest = max(1, (int) config('endorsement-files.max_files_per_request', 50));
 
         $data = $request->validate([
             'files' => ['required', 'array', 'min:1', 'max:'.$maxFilesPerRequest],
@@ -310,7 +320,7 @@ class EndorsementFileController extends Controller
 
     private function maxUploadMb(): int
     {
-        return max(1, (int) config('endorsement-files.max_upload_mb', 512));
+        return max(1, (int) config('endorsement-files.max_upload_mb', 2048));
     }
 
     /**

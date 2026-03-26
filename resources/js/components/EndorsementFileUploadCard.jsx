@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useId, useMemo, useRef, useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import { FolderOpen, HardDrive, Upload, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -15,7 +15,9 @@ export default function EndorsementFileUploadCard({
     disabled = false,
     disabledReason = '',
 }) {
+    const inputId = useId();
     const inputRef = useRef(null);
+    const mobileInputRef = useRef(null);
     const [dragActive, setDragActive] = useState(false);
     const [selectedEndorsementId, setSelectedEndorsementId] = useState(
         fixedEndorsementId ? String(fixedEndorsementId) : String(defaultEndorsementId || ''),
@@ -40,6 +42,9 @@ export default function EndorsementFileUploadCard({
         form.setData('files', []);
         if (inputRef.current) {
             inputRef.current.value = '';
+        }
+        if (mobileInputRef.current) {
+            mobileInputRef.current.value = '';
         }
     };
 
@@ -120,14 +125,13 @@ export default function EndorsementFileUploadCard({
                         File disimpan apa adanya, tanpa resize, tanpa kompresi, dan kualitas tetap asli.
                     </p>
                     <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                        <button
+                        <label
+                            htmlFor={inputId}
                             className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-muted"
-                            onClick={() => inputRef.current?.click()}
-                            type="button"
                         >
                             <FolderOpen className="mr-2 h-4 w-4" />
                             Pilih file
-                        </button>
+                        </label>
                         {form.data.files.length > 0 && (
                             <button
                                 className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-muted"
@@ -140,12 +144,32 @@ export default function EndorsementFileUploadCard({
                     </div>
 
                     <input
+                        id={inputId}
                         ref={inputRef}
                         multiple
-                        className="hidden"
+                        className="sr-only"
+                        name="files[]"
                         onChange={(event) => setFiles(event.target.files)}
                         type="file"
                     />
+
+                    <div className="mt-4 rounded-2xl border border-border bg-white p-3 text-left md:hidden">
+                        <label className="mb-2 block text-sm font-medium text-foreground" htmlFor={`${inputId}-mobile`}>
+                            Pilih via input iPhone / Android
+                        </label>
+                        <input
+                            id={`${inputId}-mobile`}
+                            ref={mobileInputRef}
+                            multiple
+                            className="block w-full text-sm text-foreground file:mr-3 file:rounded-xl file:border-0 file:bg-muted file:px-3 file:py-2 file:font-semibold file:text-foreground"
+                            name="files[]"
+                            onChange={(event) => setFiles(event.target.files)}
+                            type="file"
+                        />
+                        <p className="mt-2 text-xs text-muted-foreground">
+                            Jika Safari terasa susah saat pilih file, gunakan input native ini langsung.
+                        </p>
+                    </div>
                 </div>
 
                 {form.data.files.length > 0 && (
