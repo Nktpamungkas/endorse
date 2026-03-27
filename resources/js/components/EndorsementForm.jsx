@@ -108,6 +108,7 @@ export default function EndorsementForm({
     submitLabel,
     mode = 'create',
 }) {
+    const formRef = useRef(null);
     const lastManualFinancialMode = useRef(
         endorsement.financial_mode && !NA_MODES.includes(endorsement.financial_mode)
             ? endorsement.financial_mode
@@ -210,8 +211,12 @@ export default function EndorsementForm({
         form.post('/endorsements', options);
     };
 
+    const submitForm = () => {
+        formRef.current?.requestSubmit();
+    };
+
     return (
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-5 pb-6">
             <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
                 <h2 className="text-base font-semibold text-foreground">Informasi Campaign</h2>
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -380,17 +385,20 @@ export default function EndorsementForm({
                 </div>
             </section>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-                <Link href="/endorsements" className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted">
-                    Batal
-                </Link>
-                <button
-                    className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={form.processing}
-                    type="submit"
-                >
-                    {form.processing ? 'Menyimpan...' : submitLabel}
-                </button>
+            <div className="sticky bottom-3 z-20 flex justify-end">
+                <div className="pointer-events-auto flex w-full max-w-md flex-col gap-3 rounded-2xl border border-border bg-white/95 p-3 shadow-lg backdrop-blur sm:flex-row sm:justify-end">
+                    <Link href="/endorsements" className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted">
+                        Batal
+                    </Link>
+                    <button
+                        className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={form.processing}
+                        onClick={submitForm}
+                        type="button"
+                    >
+                        {form.processing ? 'Menyimpan...' : submitLabel}
+                    </button>
+                </div>
             </div>
         </form>
     );

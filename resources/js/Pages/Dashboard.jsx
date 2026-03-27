@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Chart } from 'chart.js/auto';
 import { ArrowRight, BarChart3, CircleDollarSign, Layers3, X } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
@@ -59,6 +59,8 @@ export default function Dashboard(props) {
     const detailSectionRef = useRef(null);
     const [tourOpen, setTourOpen] = useState(false);
     const [tourIndex, setTourIndex] = useState(0);
+    const [statusDrafts, setStatusDrafts] = useState({});
+    const [updatingId, setUpdatingId] = useState(null);
 
     useEffect(() => {
         if (!chartRef.current) {
@@ -138,11 +140,39 @@ export default function Dashboard(props) {
         });
     }, [tourIndex, tourOpen]);
 
+    useEffect(() => {
+        setStatusDrafts(
+            Object.fromEntries(selectedStatusItems.map((item) => [item.id, item.status])),
+        );
+    }, [selectedStatusItems]);
+
     const highlighted = (target) => (
         tourOpen && TOUR_STEPS[tourIndex].target === target
             ? 'ring-2 ring-primary/30 shadow-lg shadow-primary/10'
             : ''
     );
+
+    const updateStatusDraft = (endorsementId, status) => {
+        setStatusDrafts((current) => ({
+            ...current,
+            [endorsementId]: status,
+        }));
+    };
+
+    const submitQuickStatus = (endorsementId) => {
+        const nextStatus = statusDrafts[endorsementId];
+        if (!nextStatus) {
+            return;
+        }
+
+        setUpdatingId(endorsementId);
+        router.post(`/endorsements/${endorsementId}/status`, {
+            status: nextStatus,
+        }, {
+            preserveScroll: true,
+            onFinish: () => setUpdatingId(null),
+        });
+    };
 
     return (
         <AppLayout>
@@ -324,10 +354,14 @@ export default function Dashboard(props) {
                                                 {formatCurrency(item.net_profit)}
                                             </td>
                                             <td className="py-2 text-right">
-                                                <div className="inline-flex items-center gap-2">
-                                                    <Link href={`/endorsements/${item.id}`} className="inline-flex items-center justify-center rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted">Detail</Link>
-                                                    <Link href={`/endorsements/${item.id}/edit`} className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90">Edit</Link>
-                                                </div>
+                                                <QuickStatusControl
+                                                    item={item}
+                                                    onStatusChange={updateStatusDraft}
+                                                    onSubmit={submitQuickStatus}
+                                                    statusDraft={statusDrafts[item.id] ?? item.status}
+                                                    statusOptions={statusOptions}
+                                                    updatingId={updatingId}
+                                                />
                                             </td>
                                         </tr>
                                     ))}
@@ -369,8 +403,15 @@ export default function Dashboard(props) {
                                     Laba: {formatCurrency(item.net_profit)}
                                 </div>
                                 <div className="mt-3 grid grid-cols-1 gap-2">
-                                    <Link href={`/endorsements/${item.id}`} className="inline-flex items-center justify-center rounded-md border border-border px-3 py-2 text-center text-xs font-semibold text-foreground hover:bg-muted">Detail</Link>
-                                    <Link href={`/endorsements/${item.id}/edit`} className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-center text-xs font-semibold text-primary-foreground hover:bg-primary/90">Edit</Link>
+                                    <QuickStatusControl
+                                        item={item}
+                                        mobile
+                                        onStatusChange={updateStatusDraft}
+                                        onSubmit={submitQuickStatus}
+                                        statusDraft={statusDrafts[item.id] ?? item.status}
+                                        statusOptions={statusOptions}
+                                        updatingId={updatingId}
+                                    />
                                 </div>
                             </div>
                         ))}
@@ -395,6 +436,70 @@ export default function Dashboard(props) {
                 steps={TOUR_STEPS}
             />
         </AppLayout>
+    );
+}
+
+function QuickStatusControl({
+    item,
+    statusOptions,
+    statusDraft,
+    updatingId,
+    onStatusChange,
+    onSubmit,
+    mobile = false,
+}) {
+    const isUpdating = updatingId === item.id;
+
+    if (mobile) {
+        return (
+            <>
+                <select
+                    className="w-full rounded-md border border-border bg-white px-3 py-2 text-xs font-medium text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+                    onChange={(event) => onStatusChange(item.id, event.target.value)}
+                    value={statusDraft}
+                >
+                    {Object.entries(statusOptions).map(([key, label]) => (
+                        <option key={key} value={key}>{label}</option>
+                    ))}
+                </select>
+                <button
+                    className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={isUpdating}
+                    onClick={() => onSubmit(item.id)}
+                    type="button"
+                >
+                    {isUpdating ? 'Menyimpan...' : 'Update Status'}
+                </button>
+                <Link href={`/endorsements/${item.id}`} className="inline-flex items-center justify-center rounded-md border border-border px-3 py-2 text-center text-xs font-semibold text-foreground hover:bg-muted">
+                    Detail
+                </Link>
+            </>
+        );
+    }
+
+    return (
+        <div className="inline-flex items-center gap-2">
+            <select
+                className="w-40 rounded-md border border-border bg-white px-3 py-1.5 text-xs font-medium text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+                onChange={(event) => onStatusChange(item.id, event.target.value)}
+                value={statusDraft}
+            >
+                {Object.entries(statusOptions).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                ))}
+            </select>
+            <button
+                className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isUpdating}
+                onClick={() => onSubmit(item.id)}
+                type="button"
+            >
+                {isUpdating ? 'Menyimpan...' : 'Update'}
+            </button>
+            <Link href={`/endorsements/${item.id}`} className="inline-flex items-center justify-center rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted">
+                Detail
+            </Link>
+        </div>
     );
 }
 
