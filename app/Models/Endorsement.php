@@ -127,11 +127,6 @@ class Endorsement extends Model
         return $this->hasMany(EndorsementActivity::class)->latest();
     }
 
-    public function files(): HasMany
-    {
-        return $this->hasMany(EndorsementFile::class)->latest();
-    }
-
     public function deletedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'deleted_by');

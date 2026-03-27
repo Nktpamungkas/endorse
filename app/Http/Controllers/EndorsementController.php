@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\EndorsementRequest;
 use App\Models\Endorsement;
 use App\Models\EndorsementActivity;
-use App\Models\EndorsementFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -126,7 +125,7 @@ class EndorsementController extends Controller
     public function show(Endorsement $endorsement): Response
     {
         $this->assertOwnership($endorsement);
-        $endorsement->load(['revisions', 'deletedBy', 'files'])->loadCount('files')->loadSum('files', 'size_bytes');
+        $endorsement->load(['revisions', 'deletedBy']);
 
         return Inertia::render('Endorsements/Show', [
             'endorsement' => $this->serializeDetailEndorsement($endorsement),
@@ -140,13 +139,6 @@ class EndorsementController extends Controller
             'logs' => $endorsement->activities()->limit(15)->get()->map(
                 fn (EndorsementActivity $log) => $this->serializeLog($log)
             )->values(),
-            'files' => $endorsement->files->take(8)->map(fn (EndorsementFile $file) => $this->serializeEndorsementFile($file))->values(),
-            'fileSummary' => [
-                'total_count' => (int) ($endorsement->files_count ?? 0),
-                'total_size' => (int) ($endorsement->files_sum_size_bytes ?? 0),
-                'showing_count' => min(8, (int) ($endorsement->files_count ?? 0)),
-            ],
-            'maxUploadMb' => max(1, (int) config('endorsement-files.max_upload_mb', 512)),
             'isDeletedView' => false,
         ]);
     }
@@ -238,9 +230,8 @@ class EndorsementController extends Controller
 
     public function trashedShow(int $endorsementId): Response
     {
-        $endorsement = Endorsement::onlyTrashed()->with(['revisions', 'deletedBy', 'files'])->findOrFail($endorsementId);
+        $endorsement = Endorsement::onlyTrashed()->with(['revisions', 'deletedBy'])->findOrFail($endorsementId);
         $this->assertOwnership($endorsement);
-        $endorsement->loadCount('files')->loadSum('files', 'size_bytes');
 
         return Inertia::render('Endorsements/Show', [
             'endorsement' => $this->serializeDetailEndorsement($endorsement),
@@ -254,13 +245,6 @@ class EndorsementController extends Controller
             'logs' => $endorsement->activities()->limit(15)->get()->map(
                 fn (EndorsementActivity $log) => $this->serializeLog($log)
             )->values(),
-            'files' => $endorsement->files->take(8)->map(fn (EndorsementFile $file) => $this->serializeEndorsementFile($file))->values(),
-            'fileSummary' => [
-                'total_count' => (int) ($endorsement->files_count ?? 0),
-                'total_size' => (int) ($endorsement->files_sum_size_bytes ?? 0),
-                'showing_count' => min(8, (int) ($endorsement->files_count ?? 0)),
-            ],
-            'maxUploadMb' => max(1, (int) config('endorsement-files.max_upload_mb', 512)),
             'isDeletedView' => true,
         ]);
     }
@@ -437,31 +421,6 @@ class EndorsementController extends Controller
             'deleted_reason' => $endorsement->deleted_reason,
             'deleted_at' => optional($endorsement->deleted_at)->toIso8601String(),
             'deleted_by_name' => optional($endorsement->deletedBy)->username,
-            'file_count' => (int) ($endorsement->files_count ?? 0),
-            'file_total_size' => (int) ($endorsement->files_sum_size_bytes ?? 0),
-        ];
-    }
-
-    private function serializeEndorsementFile(EndorsementFile $file): array
-    {
-        return [
-            'id' => $file->id,
-            'endorsement_id' => $file->endorsement_id,
-            'endorsement_label' => trim(($file->endorsement?->brand_name ?: 'Endorse').' - '.($file->endorsement?->campaign_name ?: 'Tanpa campaign')),
-            'endorsement_brand_name' => $file->endorsement?->brand_name,
-            'endorsement_campaign_name' => $file->endorsement?->campaign_name,
-            'endorsement_deleted' => $file->endorsement?->trashed() ?? false,
-            'original_name' => $file->original_name,
-            'extension' => $file->extension,
-            'mime_type' => $file->mime_type,
-            'category' => $file->category,
-            'category_label' => EndorsementFile::CATEGORY_LABELS[$file->category] ?? 'Lainnya',
-            'size_bytes' => (int) $file->size_bytes,
-            'uploaded_at' => $file->created_at?->toIso8601String(),
-            'can_preview' => in_array($file->category, ['image', 'video', 'audio', 'pdf'], true),
-            'preview_url' => '/endorsement-files/'.$file->id.'/preview',
-            'download_url' => '/endorsement-files/'.$file->id.'/download',
-            'delete_url' => '/endorsement-files/'.$file->id,
         ];
     }
 

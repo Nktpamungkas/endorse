@@ -3,10 +3,20 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 return new class extends Migration
 {
     public function up(): void
+    {
+        if (Storage::disk('local')->exists('endorsement-files')) {
+            Storage::disk('local')->deleteDirectory('endorsement-files');
+        }
+
+        Schema::dropIfExists('endorsement_files');
+    }
+
+    public function down(): void
     {
         Schema::create('endorsement_files', function (Blueprint $table) {
             $table->id();
@@ -26,10 +36,5 @@ return new class extends Migration
             $table->index(['endorsement_id', 'created_at']);
             $table->index(['category', 'created_at']);
         });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('endorsement_files');
     }
 };
