@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Endorsement;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -43,14 +44,26 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        $monthlyStats = Endorsement::query()
+        $rawMonthlyStats = Endorsement::query()
             ->where('user_id', Auth::id())
             ->selectRaw("FORMAT(created_at, 'yyyy-MM-01') as month_key")
             ->selectRaw('SUM(fee_amount + reimburse_amount) as income')
             ->selectRaw('SUM(product_cost + other_cost) as cost')
             ->groupByRaw("FORMAT(created_at, 'yyyy-MM-01')")
             ->orderByRaw("FORMAT(created_at, 'yyyy-MM-01')")
-            ->get();
+            ->get()
+            ->keyBy('month_key');
+
+        $monthlyStats = collect(range(5, 0))->map(function (int $offset) use ($rawMonthlyStats) {
+            $monthKey = Carbon::now()->startOfMonth()->subMonths($offset)->format('Y-m-01');
+            $row = $rawMonthlyStats->get($monthKey);
+
+            return [
+                'month_key' => $monthKey,
+                'income' => (float) ($row->income ?? 0),
+                'cost' => (float) ($row->cost ?? 0),
+            ];
+        })->values();
 
         return Inertia::render('Dashboard', [
             'statusCounts' => $statusCounts,

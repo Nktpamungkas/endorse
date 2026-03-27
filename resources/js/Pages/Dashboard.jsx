@@ -73,6 +73,7 @@ export default function Dashboard(props) {
             .map((month) => new Date(month).toLocaleString('id-ID', { month: 'short', year: 'numeric' }));
         const income = monthlyStats.map((month) => Number(month.income));
         const cost = monthlyStats.map((month) => Number(month.cost));
+        const hasSingleActiveMonth = income.filter((value) => value > 0).length <= 1 && cost.filter((value) => value > 0).length <= 1;
 
         const chart = new Chart(ctx, {
             type: 'line',
@@ -83,18 +84,22 @@ export default function Dashboard(props) {
                         label: 'Pendapatan',
                         data: income,
                         borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.12)',
                         borderWidth: 2,
-                        pointRadius: 0,
-                        fill: false,
+                        pointRadius: hasSingleActiveMonth ? 4 : 2,
+                        pointHoverRadius: 5,
+                        fill: true,
                         tension: 0.25,
                     },
                     {
                         label: 'Modal',
                         data: cost,
                         borderColor: 'rgb(148, 163, 184)',
+                        backgroundColor: 'rgba(148, 163, 184, 0.08)',
                         borderWidth: 2,
-                        pointRadius: 0,
-                        fill: false,
+                        pointRadius: hasSingleActiveMonth ? 4 : 2,
+                        pointHoverRadius: 5,
+                        fill: true,
                         tension: 0.25,
                     },
                 ],
