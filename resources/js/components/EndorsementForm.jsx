@@ -213,14 +213,6 @@ export default function EndorsementForm({
         submitData();
     };
 
-    const submitForm = () => {
-        if (form.processing) {
-            return;
-        }
-
-        submitData();
-    };
-
     return (
         <form onSubmit={handleSubmit} className="space-y-5 pb-6">
             <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
@@ -399,8 +391,7 @@ export default function EndorsementForm({
                     <button
                         className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
                         disabled={form.processing}
-                        onClick={submitForm}
-                        type="button"
+                        type="submit"
                     >
                         {form.processing ? 'Menyimpan...' : submitLabel}
                     </button>
