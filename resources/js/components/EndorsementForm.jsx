@@ -205,7 +205,8 @@ export default function EndorsementForm({
             form.transform((data) => ({
                 ...data,
                 _method: 'put',
-            })).post(`/endorsements/${endorsement.id}`, options);
+            }));
+            form.post(`/endorsements/${endorsement.id}`, options);
 
             return;
         }
