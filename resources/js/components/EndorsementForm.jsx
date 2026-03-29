@@ -108,7 +108,6 @@ export default function EndorsementForm({
     submitLabel,
     mode = 'create',
 }) {
-    const formRef = useRef(null);
     const lastManualFinancialMode = useRef(
         endorsement.financial_mode && !NA_MODES.includes(endorsement.financial_mode)
             ? endorsement.financial_mode
@@ -191,9 +190,7 @@ export default function EndorsementForm({
         }));
     };
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-
+    const submitData = () => {
         const options = {
             forceFormData: true,
             preserveScroll: true,
@@ -211,12 +208,21 @@ export default function EndorsementForm({
         form.post('/endorsements', options);
     };
 
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        submitData();
+    };
+
     const submitForm = () => {
-        formRef.current?.requestSubmit();
+        if (form.processing) {
+            return;
+        }
+
+        submitData();
     };
 
     return (
-        <form ref={formRef} onSubmit={handleSubmit} className="space-y-5 pb-6">
+        <form onSubmit={handleSubmit} className="space-y-5 pb-6">
             <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
                 <h2 className="text-base font-semibold text-foreground">Informasi Campaign</h2>
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">

@@ -75,6 +75,53 @@ class EndorsementWorkflowTest extends TestCase
         $this->assertSame('menunggu_payment', $endorsement->status);
     }
 
+    public function test_user_can_update_fee_for_na_without_self_purchase(): void
+    {
+        $user = $this->signIn();
+        $endorsement = $this->createEndorsement($user);
+
+        $response = $this->post("/endorsements/{$endorsement->id}", [
+            '_method' => 'put',
+            'brand_name' => $endorsement->brand_name,
+            'campaign_name' => $endorsement->campaign_name,
+            'platform' => $endorsement->platform,
+            'content_type' => $endorsement->content_type,
+            'status' => $endorsement->status,
+            'deal_date' => null,
+            'product_ordered_at' => null,
+            'product_received_at' => null,
+            'draft_deadline' => null,
+            'storyline_required' => false,
+            'storyline_done' => false,
+            'drive_uploaded' => false,
+            'approved_at' => null,
+            'posting_date' => null,
+            'posted_at' => null,
+            'insight_due_at' => null,
+            'insight_sent_at' => null,
+            'boostcode_required' => false,
+            'boostcode_duration_days' => null,
+            'self_purchase' => false,
+            'financial_mode' => 'na_tanpa_produk',
+            'fee_amount' => 490000,
+            'reimburse_amount' => 0,
+            'product_cost' => 0,
+            'other_cost' => 0,
+            'payment_status' => 'belum_bayar',
+            'payment_due_date' => null,
+            'payment_received_date' => null,
+            'notes' => null,
+        ]);
+
+        $response->assertRedirect("/endorsements/{$endorsement->id}");
+
+        $endorsement->refresh();
+
+        $this->assertSame('na_tanpa_produk', $endorsement->financial_mode);
+        $this->assertSame('490000.00', $endorsement->fee_amount);
+        $this->assertSame('0.00', $endorsement->product_cost);
+    }
+
     private function signIn(string $role = 'paid'): User
     {
         $user = User::factory()->create([
