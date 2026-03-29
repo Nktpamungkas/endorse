@@ -86,6 +86,7 @@ function CurrencyField({ label, name, value, onChange, error, hint, disabled, cl
                 <span className="border-r border-border bg-muted px-3 py-2.5 text-sm text-muted-foreground">Rp</span>
                 <Input
                     id={`${name}_display`}
+                    name={name}
                     className="rounded-none border-0 focus:ring-0"
                     disabled={disabled}
                     inputMode="numeric"
@@ -113,6 +114,9 @@ export default function EndorsementForm({
             ? endorsement.financial_mode
             : 'reimburse_duluan',
     );
+    const csrfToken = typeof document !== 'undefined'
+        ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
+        : '';
 
     const form = useForm({
         brand_name: endorsement.brand_name ?? '',
@@ -151,6 +155,7 @@ export default function EndorsementForm({
     const reimburseLocked = !form.data.self_purchase || ['reimburse_bersama_fee', 'free_barter', ...NA_MODES].includes(form.data.financial_mode);
     const productLocked = !form.data.self_purchase;
     const checkoutDisabled = !form.data.self_purchase;
+    const actionUrl = isEdit ? `/endorsements/${endorsement.id}` : '/endorsements';
 
     const setData = (key, value) => form.setData(key, value);
 
@@ -214,48 +219,50 @@ export default function EndorsementForm({
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-5 pb-6">
+        <form action={actionUrl} encType="multipart/form-data" method="POST" onSubmit={handleSubmit} className="space-y-5 pb-6">
+            <input type="hidden" name="_token" value={csrfToken} />
+            {isEdit && <input type="hidden" name="_method" value="put" />}
             <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
                 <h2 className="text-base font-semibold text-foreground">Informasi Campaign</h2>
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <Field label="Nama Brand *" htmlFor="brand_name" error={form.errors.brand_name} className="xl:col-span-2">
-                        <Input id="brand_name" onChange={(event) => setData('brand_name', event.target.value)} value={form.data.brand_name} />
+                        <Input id="brand_name" name="brand_name" onChange={(event) => setData('brand_name', event.target.value)} value={form.data.brand_name} />
                     </Field>
                     <Field label="Nama Campaign" htmlFor="campaign_name" error={form.errors.campaign_name} className="xl:col-span-2">
-                        <Input id="campaign_name" onChange={(event) => setData('campaign_name', event.target.value)} value={form.data.campaign_name} />
+                        <Input id="campaign_name" name="campaign_name" onChange={(event) => setData('campaign_name', event.target.value)} value={form.data.campaign_name} />
                     </Field>
                     <Field label="Platform *" htmlFor="platform" error={form.errors.platform}>
-                        <Select id="platform" onChange={(event) => setData('platform', event.target.value)} value={form.data.platform}>
+                        <Select id="platform" name="platform" onChange={(event) => setData('platform', event.target.value)} value={form.data.platform}>
                             {Object.entries(platformOptions).map(([key, label]) => (
                                 <option key={key} value={key}>{label}</option>
                             ))}
                         </Select>
                     </Field>
                     <Field label="Jenis Konten *" htmlFor="content_type" error={form.errors.content_type}>
-                        <Select id="content_type" onChange={(event) => setData('content_type', event.target.value)} value={form.data.content_type}>
+                        <Select id="content_type" name="content_type" onChange={(event) => setData('content_type', event.target.value)} value={form.data.content_type}>
                             {Object.entries(contentTypeOptions).map(([key, label]) => (
                                 <option key={key} value={key}>{label}</option>
                             ))}
                         </Select>
                     </Field>
                     <Field label="Status *" htmlFor="status" error={form.errors.status}>
-                        <Select id="status" onChange={(event) => setData('status', event.target.value)} value={form.data.status}>
+                        <Select id="status" name="status" onChange={(event) => setData('status', event.target.value)} value={form.data.status}>
                             {Object.entries(statusOptions).map(([key, label]) => (
                                 <option key={key} value={key}>{label}</option>
                             ))}
                         </Select>
                     </Field>
                     <Field label="Tanggal Deal" htmlFor="deal_date" error={form.errors.deal_date}>
-                        <Input id="deal_date" onChange={(event) => setData('deal_date', event.target.value)} type="date" value={form.data.deal_date} />
+                        <Input id="deal_date" name="deal_date" onChange={(event) => setData('deal_date', event.target.value)} type="date" value={form.data.deal_date} />
                     </Field>
                     <Field label="Order Produk" htmlFor="product_ordered_at" error={form.errors.product_ordered_at}>
-                        <Input id="product_ordered_at" onChange={(event) => setData('product_ordered_at', event.target.value)} type="date" value={form.data.product_ordered_at} />
+                        <Input id="product_ordered_at" name="product_ordered_at" onChange={(event) => setData('product_ordered_at', event.target.value)} type="date" value={form.data.product_ordered_at} />
                     </Field>
                     <Field label="Produk Diterima" htmlFor="product_received_at" error={form.errors.product_received_at}>
-                        <Input id="product_received_at" onChange={(event) => setData('product_received_at', event.target.value)} type="date" value={form.data.product_received_at} />
+                        <Input id="product_received_at" name="product_received_at" onChange={(event) => setData('product_received_at', event.target.value)} type="date" value={form.data.product_received_at} />
                     </Field>
                     <Field label="Deadline Draft" htmlFor="draft_deadline" error={form.errors.draft_deadline}>
-                        <Input id="draft_deadline" onChange={(event) => setData('draft_deadline', event.target.value)} type="date" value={form.data.draft_deadline} />
+                        <Input id="draft_deadline" name="draft_deadline" onChange={(event) => setData('draft_deadline', event.target.value)} type="date" value={form.data.draft_deadline} />
                     </Field>
                 </div>
             </section>
@@ -269,19 +276,19 @@ export default function EndorsementForm({
                     <Checkbox label="Brand minta boostcode" checked={form.data.boostcode_required} name="boostcode_required" onChange={(checked) => setData('boostcode_required', checked)} />
 
                     <Field label="Tanggal Approved" htmlFor="approved_at" error={form.errors.approved_at}>
-                        <Input id="approved_at" onChange={(event) => setData('approved_at', event.target.value)} type="date" value={form.data.approved_at} />
+                        <Input id="approved_at" name="approved_at" onChange={(event) => setData('approved_at', event.target.value)} type="date" value={form.data.approved_at} />
                     </Field>
                     <Field label="Tanggal Posting (Rencana)" htmlFor="posting_date" error={form.errors.posting_date}>
-                        <Input id="posting_date" onChange={(event) => setData('posting_date', event.target.value)} type="date" value={form.data.posting_date} />
+                        <Input id="posting_date" name="posting_date" onChange={(event) => setData('posting_date', event.target.value)} type="date" value={form.data.posting_date} />
                     </Field>
                     <Field label="Tanggal Sudah Posting" htmlFor="posted_at" error={form.errors.posted_at} hint="Opsional. Isi jika konten sudah tayang.">
-                        <Input id="posted_at" onChange={(event) => setData('posted_at', event.target.value)} type="date" value={form.data.posted_at} />
+                        <Input id="posted_at" name="posted_at" onChange={(event) => setData('posted_at', event.target.value)} type="date" value={form.data.posted_at} />
                     </Field>
                     <Field label="Insight Due" htmlFor="insight_due_at" error={form.errors.insight_due_at} hint="Isi jika brand memang minta insight.">
-                        <Input id="insight_due_at" onChange={(event) => setData('insight_due_at', event.target.value)} type="date" value={form.data.insight_due_at} />
+                        <Input id="insight_due_at" name="insight_due_at" onChange={(event) => setData('insight_due_at', event.target.value)} type="date" value={form.data.insight_due_at} />
                     </Field>
                     <Field label="Tanggal Kirim Insight" htmlFor="insight_sent_at" error={form.errors.insight_sent_at}>
-                        <Input id="insight_sent_at" onChange={(event) => setData('insight_sent_at', event.target.value)} type="date" value={form.data.insight_sent_at} />
+                        <Input id="insight_sent_at" name="insight_sent_at" onChange={(event) => setData('insight_sent_at', event.target.value)} type="date" value={form.data.insight_sent_at} />
                     </Field>
                     <Field
                         label="Durasi Boostcode (hari)"
@@ -291,6 +298,7 @@ export default function EndorsementForm({
                     >
                         <Input
                             id="boostcode_duration_days"
+                            name="boostcode_duration_days"
                             min="7"
                             max="365"
                             onChange={(event) => setData('boostcode_duration_days', event.target.value)}
@@ -310,7 +318,7 @@ export default function EndorsementForm({
                         error={form.errors.financial_mode}
                         hint={!form.data.self_purchase ? 'Saat produk tidak dibeli sendiri, pilihan aktif hanya mode N/A.' : ''}
                     >
-                        <Select id="financial_mode" onChange={(event) => handleFinancialModeChange(event.target.value)} value={form.data.financial_mode}>
+                        <Select id="financial_mode" name="financial_mode" onChange={(event) => handleFinancialModeChange(event.target.value)} value={form.data.financial_mode}>
                             {Object.entries(financialModeOptions).map(([key, label]) => (
                                 <option key={key} value={key}>{label}</option>
                             ))}
@@ -352,6 +360,7 @@ export default function EndorsementForm({
                         <Input
                             id="checkout_proof"
                             disabled={checkoutDisabled}
+                            name="checkout_proof"
                             onChange={(event) => setData('checkout_proof', event.target.files?.[0] ?? null)}
                             type="file"
                         />
@@ -365,37 +374,35 @@ export default function EndorsementForm({
                         )}
                     </Field>
                     <Field label="Status Payment *" htmlFor="payment_status" error={form.errors.payment_status}>
-                        <Select id="payment_status" onChange={(event) => setData('payment_status', event.target.value)} value={form.data.payment_status}>
+                        <Select id="payment_status" name="payment_status" onChange={(event) => setData('payment_status', event.target.value)} value={form.data.payment_status}>
                             {Object.entries(paymentStatusOptions).map(([key, label]) => (
                                 <option key={key} value={key}>{label}</option>
                             ))}
                         </Select>
                     </Field>
                     <Field label="Jatuh Tempo Payment" htmlFor="payment_due_date" error={form.errors.payment_due_date}>
-                        <Input id="payment_due_date" onChange={(event) => setData('payment_due_date', event.target.value)} type="date" value={form.data.payment_due_date} />
+                        <Input id="payment_due_date" name="payment_due_date" onChange={(event) => setData('payment_due_date', event.target.value)} type="date" value={form.data.payment_due_date} />
                     </Field>
                     <Field label="Tanggal Payment Masuk" htmlFor="payment_received_date" error={form.errors.payment_received_date}>
-                        <Input id="payment_received_date" onChange={(event) => setData('payment_received_date', event.target.value)} type="date" value={form.data.payment_received_date} />
+                        <Input id="payment_received_date" name="payment_received_date" onChange={(event) => setData('payment_received_date', event.target.value)} type="date" value={form.data.payment_received_date} />
                     </Field>
                     <Field label="Catatan" htmlFor="notes" error={form.errors.notes} className="md:col-span-2 xl:col-span-4">
-                        <Textarea id="notes" onChange={(event) => setData('notes', event.target.value)} rows="4" value={form.data.notes} />
+                        <Textarea id="notes" name="notes" onChange={(event) => setData('notes', event.target.value)} rows="4" value={form.data.notes} />
                     </Field>
                 </div>
             </section>
 
-            <div className="sticky bottom-3 z-20 flex justify-end">
-                <div className="pointer-events-auto flex w-full max-w-md flex-col gap-3 rounded-2xl border border-border bg-white/95 p-3 shadow-lg backdrop-blur sm:flex-row sm:justify-end">
-                    <Link href="/endorsements" className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted">
-                        Batal
-                    </Link>
-                    <button
-                        className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-                        disabled={form.processing}
-                        type="submit"
-                    >
-                        {form.processing ? 'Menyimpan...' : submitLabel}
-                    </button>
-                </div>
+            <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:justify-end">
+                <Link href="/endorsements" className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted">
+                    Batal
+                </Link>
+                <button
+                    className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={form.processing}
+                    type="submit"
+                >
+                    {form.processing ? 'Menyimpan...' : submitLabel}
+                </button>
             </div>
         </form>
     );
