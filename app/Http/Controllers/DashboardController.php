@@ -27,7 +27,7 @@ class DashboardController extends Controller
         $totalIncome = (float) Endorsement::where('user_id', Auth::id())->sum(DB::raw('fee_amount + reimburse_amount'));
         $totalCost = (float) Endorsement::where('user_id', Auth::id())->sum(DB::raw('product_cost + other_cost'));
         $receivedNetProfit = (float) Endorsement::where('user_id', Auth::id())
-            ->where('payment_status', 'lunas')
+            ->where('status', 'selesai')
             ->sum(DB::raw('(fee_amount + reimburse_amount) - (product_cost + other_cost)'));
         $waitingPayment = (int) ($statusCounts['menunggu_payment'] ?? 0);
         $waitingPaymentItems = Endorsement::query()
@@ -35,14 +35,16 @@ class DashboardController extends Controller
             ->where('status', 'menunggu_payment')
             ->orderByRaw("CASE WHEN payment_due_date IS NULL THEN 1 ELSE 0 END, payment_due_date ASC, updated_at DESC")
             ->limit(10)
-            ->get();
+            ->get()
+            ->map(fn (Endorsement $endorsement) => $this->serializeDashboardItem($endorsement));
 
         $selectedStatusItems = Endorsement::query()
             ->where('user_id', Auth::id())
             ->where('status', $selectedStatus)
             ->orderByDesc('updated_at')
             ->limit(10)
-            ->get();
+            ->get()
+            ->map(fn (Endorsement $endorsement) => $this->serializeDashboardItem($endorsement));
 
         $rawMonthlyStats = Endorsement::query()
             ->where('user_id', Auth::id())
@@ -80,5 +82,23 @@ class DashboardController extends Controller
             'paymentStatusOptions' => Endorsement::PAYMENT_STATUS_OPTIONS,
             'monthlyStats' => $monthlyStats,
         ]);
+    }
+
+    private function serializeDashboardItem(Endorsement $endorsement): array
+    {
+        return [
+            'id' => $endorsement->id,
+            'brand_name' => $endorsement->brand_name,
+            'campaign_name' => $endorsement->campaign_name,
+            'platform' => $endorsement->platform,
+            'status' => $endorsement->status,
+            'posting_date' => optional($endorsement->posting_date)->format('Y-m-d'),
+            'insight_due_at' => optional($endorsement->insight_due_at)->format('Y-m-d'),
+            'insight_sent_at' => optional($endorsement->insight_sent_at)->format('Y-m-d'),
+            'payment_status' => $endorsement->payment_status,
+            'payment_due_date' => optional($endorsement->payment_due_date)->format('Y-m-d'),
+            'total_cost' => (float) $endorsement->total_cost,
+            'net_profit' => (float) $endorsement->net_profit,
+        ];
     }
 }
