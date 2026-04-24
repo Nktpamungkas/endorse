@@ -4,6 +4,17 @@ import { cn } from '@/lib/utils';
 import { formatCurrencyInput, toCurrencyDigits } from '@/lib/formatters';
 
 const NA_MODES = ['na_dikirim_brand', 'na_tanpa_produk'];
+const STATUS_FIELD_HINTS = {
+    deal_masuk: 'Pilih ini saat deal baru masuk dan detail campaign mulai dicatat.',
+    pembelian_produk: 'Gunakan saat produk sedang dibeli atau belum sampai.',
+    pembuatan_draft: 'Gunakan saat konten masih dibuat.',
+    menunggu_draft_ok: 'Gunakan saat draft sudah dikirim dan menunggu approval brand.',
+    revisi: 'Gunakan saat ada revisi dari brand.',
+    menunggu_posting: 'Gunakan saat konten siap diposting.',
+    menunggu_insight: 'Gunakan saat konten sudah tayang dan tinggal kirim insight.',
+    menunggu_payment: 'Gunakan saat pekerjaan perlu ditagih.',
+    selesai: 'Gunakan saat campaign sudah selesai.',
+};
 
 function FieldError({ message }) {
     if (!message) {
@@ -225,12 +236,13 @@ export default function EndorsementForm({
             {isEdit && <input type="hidden" name="_method" value="put" />}
             <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
                 <h2 className="text-base font-semibold text-foreground">Informasi Campaign</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Isi identitas campaign dan tahap pekerjaan saat ini.</p>
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <Field label="Nama Brand *" htmlFor="brand_name" error={form.errors.brand_name} className="xl:col-span-2">
-                        <Input id="brand_name" name="brand_name" onChange={(event) => setData('brand_name', event.target.value)} value={form.data.brand_name} />
+                        <Input id="brand_name" name="brand_name" onChange={(event) => setData('brand_name', event.target.value)} placeholder="Contoh: Wardah" value={form.data.brand_name} />
                     </Field>
                     <Field label="Nama Campaign" htmlFor="campaign_name" error={form.errors.campaign_name} className="xl:col-span-2">
-                        <Input id="campaign_name" name="campaign_name" onChange={(event) => setData('campaign_name', event.target.value)} value={form.data.campaign_name} />
+                        <Input id="campaign_name" name="campaign_name" onChange={(event) => setData('campaign_name', event.target.value)} placeholder="Contoh: Launching serum April" value={form.data.campaign_name} />
                     </Field>
                     <Field label="Platform *" htmlFor="platform" error={form.errors.platform}>
                         <Select id="platform" name="platform" onChange={(event) => setData('platform', event.target.value)} value={form.data.platform}>
@@ -246,7 +258,7 @@ export default function EndorsementForm({
                             ))}
                         </Select>
                     </Field>
-                    <Field label="Status *" htmlFor="status" error={form.errors.status}>
+                    <Field label="Status *" htmlFor="status" error={form.errors.status} hint={STATUS_FIELD_HINTS[form.data.status]}>
                         <Select id="status" name="status" onChange={(event) => setData('status', event.target.value)} value={form.data.status}>
                             {Object.entries(statusOptions).map(([key, label]) => (
                                 <option key={key} value={key}>{label}</option>
@@ -270,6 +282,7 @@ export default function EndorsementForm({
 
             <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
                 <h2 className="text-base font-semibold text-foreground">Checklist Produksi</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Centang dan isi tanggal yang membantu memantau progress konten.</p>
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <Checkbox label="Perlu storyline dulu" checked={form.data.storyline_required} name="storyline_required" onChange={(checked) => setData('storyline_required', checked)} />
                     <Checkbox label="Storyline sudah selesai" checked={form.data.storyline_done} name="storyline_done" onChange={(checked) => setData('storyline_done', checked)} />
@@ -312,6 +325,7 @@ export default function EndorsementForm({
 
             <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
                 <h2 className="text-base font-semibold text-foreground">Finansial</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Catat fee, reimburse, modal, dan status payment agar ringkasan tetap akurat.</p>
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <Field
                         label="Skema Finansial *"
@@ -388,7 +402,7 @@ export default function EndorsementForm({
                         <Input id="payment_received_date" name="payment_received_date" onChange={(event) => setData('payment_received_date', event.target.value)} type="date" value={form.data.payment_received_date} />
                     </Field>
                     <Field label="Catatan" htmlFor="notes" error={form.errors.notes} className="md:col-span-2 xl:col-span-4">
-                        <Textarea id="notes" name="notes" onChange={(event) => setData('notes', event.target.value)} rows="4" value={form.data.notes} />
+                        <Textarea id="notes" name="notes" onChange={(event) => setData('notes', event.target.value)} placeholder="Contoh: brief khusus, PIC brand, atau catatan revisi." rows="4" value={form.data.notes} />
                     </Field>
                 </div>
             </section>
@@ -402,7 +416,7 @@ export default function EndorsementForm({
                     disabled={form.processing}
                     type="submit"
                 >
-                    {form.processing ? 'Menyimpan...' : submitLabel}
+                    {form.processing ? 'Sedang menyimpan...' : submitLabel}
                 </button>
             </div>
         </form>

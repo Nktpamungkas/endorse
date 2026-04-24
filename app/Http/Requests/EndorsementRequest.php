@@ -91,6 +91,18 @@ class EndorsementRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'brand_name.required' => 'Nama brand wajib diisi.',
+            'platform.required' => 'Pilih platform campaign.',
+            'content_type.required' => 'Pilih jenis konten yang akan dibuat.',
+            'status.required' => 'Pilih status endorse saat ini.',
+            'payment_status.required' => 'Pilih status payment.',
+            'product_received_at.after_or_equal' => 'Tanggal produk diterima tidak boleh lebih awal dari tanggal order produk.',
+            'insight_sent_at.after_or_equal' => 'Tanggal kirim insight tidak boleh lebih awal dari tanggal konten tayang.',
+            'boostcode_duration_days.required' => 'Durasi boostcode wajib diisi saat boostcode dicentang.',
+            'boostcode_duration_days.min' => 'Durasi boostcode minimal 7 hari.',
+            'boostcode_duration_days.max' => 'Durasi boostcode maksimal 365 hari.',
+            'checkout_proof.mimes' => 'Bukti checkout harus berupa JPG, PNG, WEBP, atau PDF.',
+            'checkout_proof.max' => 'Ukuran bukti checkout maksimal 4 MB.',
             'reimburse_amount.required' => 'Nominal reimburse wajib diisi untuk skema Reimburse Duluan.',
             'reimburse_amount.gt' => 'Nominal reimburse untuk skema Reimburse Duluan harus lebih dari 0.',
         ];

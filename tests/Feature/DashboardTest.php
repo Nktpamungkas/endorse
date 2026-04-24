@@ -53,6 +53,7 @@ class DashboardTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')
                 ->where('receivedNetProfit', 120000)
+                ->where('waitingPaymentItems.0.total_income', 500000)
             );
     }
 

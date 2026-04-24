@@ -135,9 +135,10 @@ export default function EndorsementsIndex({
                             <div className="flex flex-1 flex-col gap-2 sm:flex-row">
                                 <button
                                     className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                                    disabled={filterForm.processing}
                                     type="submit"
                                 >
-                                    Filter
+                                    {filterForm.processing ? 'Memfilter...' : 'Terapkan Filter'}
                                 </button>
                                 <button
                                     className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted"
@@ -151,7 +152,7 @@ export default function EndorsementsIndex({
                                 href={`/endorsements-export?${new URLSearchParams(buildQuery(filterForm.data)).toString()}`}
                                 className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted"
                             >
-                                Download CSV
+                                Download Laporan CSV
                             </a>
                         </div>
                     </form>
@@ -185,7 +186,9 @@ export default function EndorsementsIndex({
                             <tbody className="divide-y divide-border">
                                 {endorsements.data.length === 0 && (
                                     <tr>
-                                        <td colSpan={9} className="py-6 text-center text-muted-foreground">Belum ada data endorse.</td>
+                                        <td colSpan={9} className="py-6">
+                                            <EmptyEndorseState />
+                                        </td>
                                     </tr>
                                 )}
                                 {endorsements.data.map((item) => (
@@ -240,9 +243,7 @@ export default function EndorsementsIndex({
 
                     <div className="grid gap-3 lg:hidden">
                         {endorsements.data.length === 0 && (
-                            <div className="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
-                                Belum ada data endorse.
-                            </div>
+                            <EmptyEndorseState />
                         )}
                         {endorsements.data.map((item) => (
                             <article key={item.id} className="rounded-2xl border border-border bg-white p-4 shadow-sm">
@@ -295,6 +296,23 @@ export default function EndorsementsIndex({
                 </section>
             </div>
         </AppLayout>
+    );
+}
+
+function EmptyEndorseState() {
+    return (
+        <div className="rounded-2xl border border-dashed border-border bg-muted/30 px-4 py-8 text-center">
+            <p className="text-sm font-medium text-foreground">Belum ada data endorse yang sesuai.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Coba reset filter atau tambahkan endorse baru.</p>
+            <div className="mt-4 flex flex-col justify-center gap-2 sm:flex-row">
+                <Link href="/endorsements" className="inline-flex items-center justify-center rounded-xl border border-border px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-muted">
+                    Reset Filter
+                </Link>
+                <Link href="/endorsements/create" className="inline-flex items-center justify-center rounded-xl bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90">
+                    Tambah Endorse
+                </Link>
+            </div>
+        </div>
     );
 }
 

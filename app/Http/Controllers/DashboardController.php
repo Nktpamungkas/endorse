@@ -97,6 +97,7 @@ class DashboardController extends Controller
             'insight_sent_at' => optional($endorsement->insight_sent_at)->format('Y-m-d'),
             'payment_status' => $endorsement->payment_status,
             'payment_due_date' => optional($endorsement->payment_due_date)->format('Y-m-d'),
+            'total_income' => (float) $endorsement->total_income,
             'total_cost' => (float) $endorsement->total_cost,
             'net_profit' => (float) $endorsement->net_profit,
         ];

@@ -1,17 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { Menu, X } from 'lucide-react';
+import {
+    Archive,
+    KeyRound,
+    LayoutDashboard,
+    ListChecks,
+    LogOut,
+    Menu,
+    PlusCircle,
+    UserCog,
+    WalletCards,
+    X,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const NavLink = ({ href, active, children, onClick }) => (
+const NavLink = ({ href, active, children, icon: Icon, onClick }) => (
     <Link
         href={href}
         onClick={onClick}
         className={cn(
-            'sidebar-link',
+            'sidebar-link flex items-center gap-2',
             active ? 'active' : '',
         )}
     >
+        {Icon && <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />}
         {children}
     </Link>
 );
@@ -20,6 +32,9 @@ export default function AppLayout({ children }) {
     const [open, setOpen] = useState(false);
     const { url, props } = usePage();
     const current = (url || '').split('?')[0];
+    const isEndorseDataActive = current.startsWith('/endorsements')
+        && current !== '/endorsements/create'
+        && !current.startsWith('/endorsements-deleted');
     const flash = props.flash ?? {};
     const errors = props.errors ?? {};
     const errorMessages = Object.values(errors).flat().filter(Boolean);
@@ -83,38 +98,45 @@ export default function AppLayout({ children }) {
                         </div>
                         <nav className="space-y-4 p-3 text-sm">
                             <div className="space-y-1">
-                                <p className="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Home</p>
-                                <NavLink href="/dashboard" active={current === '/dashboard'} onClick={() => setOpen(false)}>
+                                <p className="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Utama</p>
+                                <NavLink href="/dashboard" active={current === '/dashboard'} icon={LayoutDashboard} onClick={() => setOpen(false)}>
                                     Dashboard
                                 </NavLink>
                                 <NavLink
                                     href="/endorsements"
-                                    active={current.startsWith('/endorsements') && !current.startsWith('/endorsements-deleted')}
+                                    active={isEndorseDataActive}
+                                    icon={ListChecks}
                                     onClick={() => setOpen(false)}
                                 >
                                     Data Endorse
                                 </NavLink>
-                                <NavLink href="/total-modal" active={current.startsWith('/total-modal')} onClick={() => setOpen(false)}>
-                                    Total Modal
+                                <NavLink href="/endorsements/create" active={current === '/endorsements/create'} icon={PlusCircle} onClick={() => setOpen(false)}>
+                                    Tambah Endorse
                                 </NavLink>
-                                <NavLink href="/users" active={current.startsWith('/users')} onClick={() => setOpen(false)}>
-                                    Kelola User
+                                <NavLink href="/total-modal" active={current.startsWith('/total-modal')} icon={WalletCards} onClick={() => setOpen(false)}>
+                                    Total Modal
                                 </NavLink>
                             </div>
                             <div className="space-y-1">
-                                <p className="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Actions</p>
-                                <NavLink href="/endorsements/create" active={current === '/endorsements/create'} onClick={() => setOpen(false)}>
-                                    Tambah Endorse
+                                <p className="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Kelola</p>
+                                <NavLink href="/users" active={current.startsWith('/users')} icon={UserCog} onClick={() => setOpen(false)}>
+                                    Kelola User
                                 </NavLink>
-                                <NavLink href="/endorsements-deleted" active={current.startsWith('/endorsements-deleted')} onClick={() => setOpen(false)}>
+                                <NavLink href="/endorsements-deleted" active={current.startsWith('/endorsements-deleted')} icon={Archive} onClick={() => setOpen(false)}>
                                     Endorse Dihapus
                                 </NavLink>
-                                <NavLink href="/profile/password" active={current.startsWith('/profile/password')} onClick={() => setOpen(false)}>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Akun</p>
+                                <NavLink href="/profile/password" active={current.startsWith('/profile/password')} icon={KeyRound} onClick={() => setOpen(false)}>
                                     Ganti Password
                                 </NavLink>
                                 <form method="POST" action="/logout">
                                     <input type="hidden" name="_token" value={csrfToken} />
-                                    <button className="sidebar-link w-full text-left" onClick={() => setOpen(false)} type="submit">Logout</button>
+                                    <button className="sidebar-link flex w-full items-center gap-2 text-left" onClick={() => setOpen(false)} type="submit">
+                                        <LogOut className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                        Logout
+                                    </button>
                                 </form>
                             </div>
                         </nav>
@@ -131,34 +153,40 @@ export default function AppLayout({ children }) {
                         </div>
                         <nav className="space-y-4 p-3 text-sm">
                             <div className="space-y-1">
-                                <p className="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Home</p>
-                                <NavLink href="/dashboard" active={current === '/dashboard'}>
+                                <p className="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Utama</p>
+                                <NavLink href="/dashboard" active={current === '/dashboard'} icon={LayoutDashboard}>
                                     Dashboard
                                 </NavLink>
-                                <NavLink href="/endorsements" active={current.startsWith('/endorsements') && !current.startsWith('/endorsements-deleted')}>
+                                <NavLink href="/endorsements" active={isEndorseDataActive} icon={ListChecks}>
                                     Data Endorse
                                 </NavLink>
-                                <NavLink href="/total-modal" active={current.startsWith('/total-modal')}>
-                                    Total Modal
+                                <NavLink href="/endorsements/create" active={current === '/endorsements/create'} icon={PlusCircle}>
+                                    Tambah Endorse
                                 </NavLink>
-                                <NavLink href="/users" active={current.startsWith('/users')}>
-                                    Kelola User
+                                <NavLink href="/total-modal" active={current.startsWith('/total-modal')} icon={WalletCards}>
+                                    Total Modal
                                 </NavLink>
                             </div>
                             <div className="space-y-1">
-                                <p className="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Actions</p>
-                                <NavLink href="/endorsements/create" active={current === '/endorsements/create'}>
-                                    Tambah Endorse
+                                <p className="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Kelola</p>
+                                <NavLink href="/users" active={current.startsWith('/users')} icon={UserCog}>
+                                    Kelola User
                                 </NavLink>
-                                <NavLink href="/endorsements-deleted" active={current.startsWith('/endorsements-deleted')}>
+                                <NavLink href="/endorsements-deleted" active={current.startsWith('/endorsements-deleted')} icon={Archive}>
                                     Endorse Dihapus
                                 </NavLink>
-                                <NavLink href="/profile/password" active={current.startsWith('/profile/password')}>
+                            </div>
+                            <div className="space-y-1">
+                                <p className="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Akun</p>
+                                <NavLink href="/profile/password" active={current.startsWith('/profile/password')} icon={KeyRound}>
                                     Ganti Password
                                 </NavLink>
                                 <form method="POST" action="/logout">
                                     <input type="hidden" name="_token" value={csrfToken} />
-                                    <button className="sidebar-link w-full text-left" type="submit">Logout</button>
+                                    <button className="sidebar-link flex w-full items-center gap-2 text-left" type="submit">
+                                        <LogOut className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                        Logout
+                                    </button>
                                 </form>
                             </div>
                         </nav>
