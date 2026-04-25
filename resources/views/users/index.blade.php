@@ -5,10 +5,10 @@
         <div>
             <div class="text-muted-soft small mb-1">Settings / User & Access</div>
             <h1 class="h3 fw-bold mb-1">Kelola User</h1>
-            <div class="text-muted-soft">Kelola akun, durasi sesi, dan aksi cepat seperti force logout atau hapus.</div>
+            <div class="text-muted-soft">Kelola akun, durasi sesi, dan aksi cepat seperti logout paksa atau hapus.</div>
         </div>
         <div class="text-end text-muted-soft small">
-            Trial 2 jam · Berlangganan 8 jam · Master 8 jam
+            Trial 2 jam - Berlangganan 8 jam - Master 8 jam
         </div>
     </div>
 
@@ -21,7 +21,7 @@
     <div class="row g-3 mb-3">
         <div class="col-md-3 col-6">
             <div class="card card-soft p-3">
-                <div class="text-muted-soft small">Total User</div>
+                <div class="text-muted-soft small">Total user</div>
                 <div class="h5 fw-bold mb-0">{{ $totalUsers }}</div>
             </div>
         </div>
@@ -49,7 +49,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <div class="text-muted-soft small">Quick action</div>
-                <h2 class="h6 fw-bold mb-0">Tambah User</h2>
+                <h2 class="h6 fw-bold mb-0">Tambah user</h2>
             </div>
         </div>
         <form method="POST" action="{{ route('users.store') }}" class="cf-grid" id="createUserForm">
@@ -60,7 +60,7 @@
             </div>
             <div class="cf-field">
                 <label class="cf-label d-flex justify-content-between">
-                    <span>Password</span><span class="text-muted">berikan ke user</span>
+                    <span>Password</span><span class="text-muted">dibagikan ke user</span>
                 </label>
                 <input type="text" name="password" class="form-control" required placeholder="min 4 karakter">
             </div>
@@ -72,12 +72,12 @@
                 </select>
             </div>
             <div class="cf-field">
-                <label class="cf-label">Trial Berakhir</label>
+                <label class="cf-label">Trial berakhir</label>
                 <input type="date" name="trial_ends_at" class="form-control" data-trial-date>
-                <div class="form-text small">Kosongkan jika berlangganan.</div>
+                <div class="form-text small">Kosongkan jika user berlangganan.</div>
             </div>
             <div class="cf-actions">
-                <button class="btn btn-dark px-4">Buat User</button>
+                <button class="btn btn-dark px-4">Buat user</button>
             </div>
         </form>
     </div>
@@ -85,7 +85,7 @@
     <div class="card card-soft p-4 mb-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <div class="text-muted-soft small">Filter & Pencarian</div>
+                <div class="text-muted-soft small">Filter & pencarian</div>
                 <h2 class="h6 fw-bold mb-0">Cari user cepat</h2>
             </div>
         </div>
@@ -107,7 +107,7 @@
                 <button class="btn btn-dark">Terapkan</button>
             </div>
             <div class="col-md-2 col-6 d-grid">
-                <a href="{{ route('users.index') }}" class="btn btn-outline-secondary">Reset</a>
+                <a href="{{ route('users.index') }}" class="btn btn-outline-secondary">Hapus filter</a>
             </div>
         </form>
     </div>
@@ -116,9 +116,9 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <div class="text-muted-soft small">Users</div>
-                <h2 class="h6 fw-bold mb-0">Daftar User</h2>
+                <h2 class="h6 fw-bold mb-0">Daftar user</h2>
             </div>
-            <span class="text-muted small">Edit inline · Logout paksa · Hapus</span>
+            <span class="text-muted small">Edit langsung - Logout paksa - Hapus</span>
         </div>
         <div class="table-responsive">
             <table class="table align-middle">
@@ -126,7 +126,7 @@
                 <tr>
                     <th>Username</th>
                     <th>Role</th>
-                    <th>Trial Berakhir</th>
+                    <th>Trial berakhir</th>
                     <th>Status</th>
                     <th>Online</th>
                     <th class="text-end">Aksi</th>
@@ -136,22 +136,22 @@
                 @foreach($users as $user)
                     <tr>
                         <td>{{ $user->username }}</td>
-                    <td>{{ $user->role === 'paid' ? 'Berlangganan' : ucfirst($user->role) }}</td>
-                    <td>{{ $user->trial_ends_at ? \Illuminate\Support\Carbon::parse($user->trial_ends_at)->format('d/m/Y') : '-' }}</td>
-                    <td>
-                        <span class="badge {{ $user->active ? 'bg-success' : 'bg-secondary' }}">
-                            {{ $user->active ? 'Aktif' : 'Nonaktif' }}
-                        </span>
-                    </td>
-                    <td>
-                        @php $isOnline = $onlineUserIds->contains($user->id); @endphp
-                        <span class="badge {{ $isOnline ? 'bg-success' : 'bg-secondary' }}">
-                            {{ $isOnline ? 'Online' : 'Offline' }}
-                        </span>
-                    </td>
+                        <td>{{ $user->role === 'paid' ? 'Berlangganan' : ucfirst($user->role) }}</td>
+                        <td>{{ $user->trial_ends_at ? \Illuminate\Support\Carbon::parse($user->trial_ends_at)->format('d/m/Y') : '-' }}</td>
+                        <td>
+                            <span class="badge {{ $user->active ? 'bg-success' : 'bg-secondary' }}">
+                                {{ $user->active ? 'Aktif' : 'Nonaktif' }}
+                            </span>
+                        </td>
+                        <td>
+                            @php $isOnline = $onlineUserIds->contains($user->id); @endphp
+                            <span class="badge {{ $isOnline ? 'bg-success' : 'bg-secondary' }}">
+                                {{ $isOnline ? 'Online' : 'Offline' }}
+                            </span>
+                        </td>
                         <td class="text-end">
                             @if($user->role === 'master')
-                                <span class="text-muted small">Master</span>
+                                <span class="text-muted small">Akun master</span>
                             @else
                                 <div class="d-inline-flex align-items-center gap-2 flex-wrap justify-content-end user-row-form">
                                     <form method="POST" action="{{ route('users.update', $user) }}" class="d-flex flex-wrap align-items-center gap-2">

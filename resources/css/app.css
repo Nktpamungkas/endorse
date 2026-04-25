@@ -101,6 +101,65 @@
     background: hsl(var(--muted));
     color: hsl(var(--foreground));
 }
+.badge-soft {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 9999px;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+}
+.badge-soft.is-success {
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
+}
+.badge-soft.is-warning {
+    background: rgba(245, 158, 11, 0.16);
+    color: #92400e;
+}
+.badge-soft.is-danger {
+    background: rgba(239, 68, 68, 0.14);
+    color: #b91c1c;
+}
+.badge-soft.is-info {
+    background: rgba(59, 130, 246, 0.12);
+    color: #1d4ed8;
+}
+.badge-soft.is-neutral {
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+}
+.field-hint {
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    color: hsl(var(--muted-foreground));
+}
+.required-mark {
+    color: #dc2626;
+    font-weight: 700;
+    margin-left: 0.2rem;
+}
+.empty-state {
+    border: 1px dashed hsl(var(--border));
+    border-radius: 1rem;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 251, 255, 0.95));
+    padding: 1.25rem;
+    text-align: center;
+}
+.empty-state-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: hsl(var(--foreground));
+    margin-bottom: 0.25rem;
+}
+.empty-state-text {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
 .main-shell {
     max-width: 1700px;
     padding-left: 1rem;

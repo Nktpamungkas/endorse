@@ -1,61 +1,72 @@
 @php($isEdit = $endorsement->exists)
 
 <div class="card card-soft p-3 mb-3">
-    <h2 class="h6 fw-bold mb-3">Informasi Campaign</h2>
+    <h2 class="h6 fw-bold mb-1">Informasi campaign</h2>
+    <p class="field-hint mb-3">Isi data dasar agar campaign mudah ditemukan nanti.</p>
     <div class="row g-3">
         <div class="col-md-6">
-            <label class="form-label">Nama Brand *</label>
-            <input type="text" name="brand_name" class="form-control" value="{{ old('brand_name', $endorsement->brand_name) }}" required>
+            <label class="form-label">Nama brand <span class="required-mark">*</span></label>
+            <input type="text" name="brand_name" class="form-control" value="{{ old('brand_name', $endorsement->brand_name) }}" required placeholder="contoh: Wardah">
+            <div class="field-hint">Tulis nama brand atau klien yang bekerja sama.</div>
         </div>
         <div class="col-md-6">
             <label class="form-label">Nama Campaign</label>
-            <input type="text" name="campaign_name" class="form-control" value="{{ old('campaign_name', $endorsement->campaign_name) }}">
+            <input type="text" name="campaign_name" class="form-control" value="{{ old('campaign_name', $endorsement->campaign_name) }}" placeholder="contoh: Ramadan Sale 2026">
+            <div class="field-hint">Boleh dikosongkan kalau belum ada nama campaign.</div>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Platform *</label>
+            <label class="form-label">Platform <span class="required-mark">*</span></label>
             <select name="platform" class="form-select" required>
                 @foreach($platformOptions as $key => $label)
                     <option value="{{ $key }}" @selected(old('platform', $endorsement->platform) === $key)>{{ $label }}</option>
                 @endforeach
             </select>
+            <div class="field-hint">Pilih tempat konten akan dipublikasikan.</div>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Jenis Konten *</label>
+            <label class="form-label">Jenis konten <span class="required-mark">*</span></label>
             <select name="content_type" class="form-select" required>
                 @foreach($contentTypeOptions as $key => $label)
                     <option value="{{ $key }}" @selected(old('content_type', $endorsement->content_type) === $key)>{{ $label }}</option>
                 @endforeach
             </select>
+            <div class="field-hint">Contoh: video, story, feed, atau review.</div>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Status *</label>
+            <label class="form-label">Status <span class="required-mark">*</span></label>
             <select name="status" class="form-select" required>
                 @foreach($statusOptions as $key => $label)
                     <option value="{{ $key }}" @selected(old('status', $endorsement->status ?: 'deal_masuk') === $key)>{{ $label }}</option>
                 @endforeach
             </select>
+            <div class="field-hint">Pilih tahap pekerjaan saat ini.</div>
         </div>
         <div class="col-md-3">
             <label class="form-label">Tanggal Deal</label>
             <input type="date" name="deal_date" class="form-control" value="{{ old('deal_date', optional($endorsement->deal_date)->format('Y-m-d')) }}">
+            <div class="field-hint">Kapan deal pertama kali disetujui.</div>
         </div>
         <div class="col-md-3">
             <label class="form-label">Order Produk</label>
             <input type="date" name="product_ordered_at" class="form-control" value="{{ old('product_ordered_at', optional($endorsement->product_ordered_at)->format('Y-m-d')) }}">
+            <div class="field-hint">Isi kalau ada proses beli produk.</div>
         </div>
         <div class="col-md-3">
             <label class="form-label">Produk Diterima</label>
             <input type="date" name="product_received_at" class="form-control" value="{{ old('product_received_at', optional($endorsement->product_received_at)->format('Y-m-d')) }}">
+            <div class="field-hint">Tanggal paket sampai ke tangan Anda.</div>
         </div>
         <div class="col-md-3">
             <label class="form-label">Deadline Draft</label>
             <input type="date" name="draft_deadline" class="form-control" value="{{ old('draft_deadline', optional($endorsement->draft_deadline)->format('Y-m-d')) }}">
+            <div class="field-hint">Batas terakhir untuk kirim draft.</div>
         </div>
     </div>
 </div>
 
 <div class="card card-soft p-3 mb-3">
-    <h2 class="h6 fw-bold mb-3">Checklist Produksi</h2>
+    <h2 class="h6 fw-bold mb-1">Checklist produksi</h2>
+    <p class="field-hint mb-3">Centang jika ada langkah yang memang harus dikerjakan.</p>
     <div class="row g-3">
         <div class="col-md-4">
             <div class="form-check">
@@ -76,26 +87,29 @@
             </div>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Tanggal Approved</label>
+            <label class="form-label">Tanggal approved</label>
             <input type="date" name="approved_at" class="form-control" value="{{ old('approved_at', optional($endorsement->approved_at)->format('Y-m-d')) }}">
+            <div class="field-hint">Isi saat draft sudah disetujui.</div>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Tanggal Posting (Rencana)</label>
+            <label class="form-label">Tanggal posting rencana</label>
             <input type="date" name="posting_date" class="form-control" value="{{ old('posting_date', optional($endorsement->posting_date)->format('Y-m-d')) }}">
+            <div class="field-hint">Tanggal yang direncanakan untuk tayang.</div>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Tanggal Sudah Posting</label>
+            <label class="form-label">Tanggal sudah posting</label>
             <input type="date" name="posted_at" class="form-control" value="{{ old('posted_at', optional($endorsement->posted_at)->format('Y-m-d')) }}">
-            <div class="form-text">Opsional. Isi jika konten sudah tayang.</div>
+            <div class="field-hint">Opsional. Isi kalau konten sudah tayang.</div>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Insight Due (opsional)</label>
+            <label class="form-label">Batas insight</label>
             <input type="date" name="insight_due_at" class="form-control" value="{{ old('insight_due_at', optional($endorsement->insight_due_at)->format('Y-m-d')) }}">
-            <div class="form-text">Isi hanya jika brand memang minta insight.</div>
+            <div class="field-hint">Isi hanya kalau brand minta laporan insight.</div>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Tanggal Kirim Insight</label>
+            <label class="form-label">Tanggal kirim insight</label>
             <input type="date" name="insight_sent_at" class="form-control" value="{{ old('insight_sent_at', optional($endorsement->insight_sent_at)->format('Y-m-d')) }}">
+            <div class="field-hint">Isi saat insight sudah dikirim.</div>
         </div>
         <div class="col-md-4">
             <div class="form-check mt-4 pt-2">
@@ -104,24 +118,25 @@
             </div>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Durasi Boostcode (hari)</label>
+            <label class="form-label">Durasi boostcode (hari)</label>
             <input type="number" min="7" max="365" name="boostcode_duration_days" class="form-control" value="{{ old('boostcode_duration_days', $endorsement->boostcode_duration_days) }}">
-            <div class="form-text">Opsional. Isi jika boostcode diperlukan.</div>
+            <div class="field-hint">Opsional. Isi kalau brand meminta boostcode.</div>
         </div>
     </div>
 </div>
 
 <div class="card card-soft p-3 mb-3">
-    <h2 class="h6 fw-bold mb-3">Finansial (IDR)</h2>
+    <h2 class="h6 fw-bold mb-1">Finansial</h2>
+    <p class="field-hint mb-3">Isi nominal uang yang terlibat. Semua dihitung otomatis di dashboard.</p>
     <div class="row g-3">
         <div class="col-md-4">
-            <label class="form-label">Skema Finansial *</label>
+            <label class="form-label">Skema finansial <span class="required-mark">*</span></label>
             <select name="financial_mode" class="form-select" required>
                 @foreach($financialModeOptions as $key => $label)
                     <option value="{{ $key }}" @selected(old('financial_mode', $endorsement->financial_mode ?: 'reimburse_duluan') === $key)>{{ $label }}</option>
                 @endforeach
             </select>
-            <div class="form-text" id="financial_mode_help"></div>
+            <div class="field-hint" id="financial_mode_help"></div>
         </div>
         <div class="col-md-4">
             <label class="form-label">Fee</label>
@@ -137,6 +152,7 @@
                        placeholder="0">
             </div>
             <input type="hidden" name="fee_amount" id="fee_amount" value="{{ old('fee_amount', $endorsement->fee_amount) }}">
+            <div class="field-hint">Isi nol jika tidak ada fee.</div>
         </div>
         <div class="col-md-4">
             <label class="form-label">Nominal Reimburse</label>
@@ -152,7 +168,7 @@
                        placeholder="0">
             </div>
             <input type="hidden" name="reimburse_amount" id="reimburse_amount" value="{{ old('reimburse_amount', $endorsement->reimburse_amount) }}">
-            <div class="form-text" id="reimburse_amount_help"></div>
+            <div class="field-hint" id="reimburse_amount_help"></div>
         </div>
         <div class="col-md-4">
             <div class="form-check mt-4 pt-2">
@@ -174,6 +190,7 @@
                        placeholder="0">
             </div>
             <input type="hidden" name="product_cost" id="product_cost" value="{{ old('product_cost', $endorsement->product_cost) }}">
+            <div class="field-hint">Biaya produk yang Anda keluarkan sendiri.</div>
         </div>
         <div class="col-md-4">
             <label class="form-label">Biaya Lain (ongkir, dsb)</label>
@@ -189,9 +206,10 @@
                        placeholder="0">
             </div>
             <input type="hidden" name="other_cost" id="other_cost" value="{{ old('other_cost', $endorsement->other_cost) }}">
+            <div class="field-hint">Tambahkan biaya lain jika memang ada.</div>
         </div>
         <div class="col-md-6">
-            <label class="form-label">Bukti Checkout (opsional)</label>
+            <label class="form-label">Bukti checkout</label>
             <input type="file" name="checkout_proof" id="checkout_proof" class="form-control" accept=".jpg,.jpeg,.png,.pdf,.webp">
             @if($isEdit && $endorsement->checkout_proof_path)
                 <div class="form-text">
@@ -199,26 +217,31 @@
                     <a href="{{ asset('storage/'.$endorsement->checkout_proof_path) }}" target="_blank">lihat file</a>
                 </div>
             @endif
+            <div class="field-hint">Opsional. Bisa diisi foto, PDF, atau file bukti lain.</div>
         </div>
         <div class="col-md-3">
-            <label class="form-label">Status Payment *</label>
+            <label class="form-label">Status payment <span class="required-mark">*</span></label>
             <select name="payment_status" class="form-select" required>
                 @foreach($paymentStatusOptions as $key => $label)
                     <option value="{{ $key }}" @selected(old('payment_status', $endorsement->payment_status ?: 'belum_bayar') === $key)>{{ $label }}</option>
                 @endforeach
             </select>
+            <div class="field-hint">Pilih apakah pembayaran sudah masuk atau belum.</div>
         </div>
         <div class="col-md-3">
-            <label class="form-label">Jatuh Tempo Payment</label>
+            <label class="form-label">Jatuh tempo payment</label>
             <input type="date" name="payment_due_date" class="form-control" value="{{ old('payment_due_date', optional($endorsement->payment_due_date)->format('Y-m-d')) }}">
+            <div class="field-hint">Isi jika ada batas waktu pembayaran.</div>
         </div>
         <div class="col-md-3">
-            <label class="form-label">Tanggal Payment Masuk</label>
+            <label class="form-label">Tanggal payment masuk</label>
             <input type="date" name="payment_received_date" class="form-control" value="{{ old('payment_received_date', optional($endorsement->payment_received_date)->format('Y-m-d')) }}">
+            <div class="field-hint">Isi saat dana sudah diterima.</div>
         </div>
         <div class="col-12">
             <label class="form-label">Catatan</label>
-            <textarea name="notes" rows="4" class="form-control">{{ old('notes', $endorsement->notes) }}</textarea>
+            <textarea name="notes" rows="4" class="form-control" placeholder="Tulis catatan penting di sini">{{ old('notes', $endorsement->notes) }}</textarea>
+            <div class="field-hint">Catatan singkat agar Anda mudah mengingat detail khusus.</div>
         </div>
     </div>
 </div>
