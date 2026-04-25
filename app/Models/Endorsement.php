@@ -16,14 +16,14 @@ class Endorsement extends Model
     use HasFactory, SoftDeletes;
 
     public const STATUS_OPTIONS = [
-        'deal_masuk' => 'Deal Masuk',
-        'pembelian_produk' => 'Pembelian / Tunggu Produk',
-        'pembuatan_draft' => 'Pembuatan Draft',
-        'menunggu_draft_ok' => 'Menunggu Draft OK',
-        'revisi' => 'Revisi',
-        'menunggu_posting' => 'Menunggu Posting',
-        'menunggu_insight' => 'Menunggu Insight',
-        'menunggu_payment' => 'Menunggu Payment',
+        'deal_masuk' => 'Deal Baru',
+        'pembelian_produk' => 'Tunggu Produk',
+        'pembuatan_draft' => 'Buat Draft',
+        'menunggu_draft_ok' => 'Menunggu Approval Draft',
+        'revisi' => 'Perlu Revisi',
+        'menunggu_posting' => 'Siap Posting',
+        'menunggu_insight' => 'Menunggu Laporan',
+        'menunggu_payment' => 'Menunggu Pembayaran',
         'selesai' => 'Selesai',
     ];
 
@@ -51,8 +51,8 @@ class Endorsement extends Model
     ];
 
     public const PAYMENT_STATUS_OPTIONS = [
-        'belum_bayar' => 'Belum Bayar',
-        'dp' => 'DP',
+        'belum_bayar' => 'Belum Dibayar',
+        'dp' => 'DP / Sebagian',
         'lunas' => 'Lunas',
     ];
 

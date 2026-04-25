@@ -7,15 +7,15 @@ import { cn } from '@/lib/utils';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 
 const STATUS_HELPERS = {
-    deal_masuk: 'Deal baru masuk, detail campaign mulai dicatat.',
-    pembelian_produk: 'Produk sedang dibeli atau menunggu sampai.',
-    pembuatan_draft: 'Konten sedang dibuat sebelum dikirim ke brand.',
-    menunggu_draft_ok: 'Draft sudah dikirim dan menunggu approval.',
-    revisi: 'Ada masukan dari brand yang perlu dikerjakan.',
-    menunggu_posting: 'Konten sudah siap, tinggal dijadwalkan atau diposting.',
-    menunggu_insight: 'Konten sudah tayang, tinggal kirim insight.',
-    menunggu_payment: 'Pekerjaan selesai sampai tahap tagihan, payment belum beres.',
-    selesai: 'Campaign sudah selesai dan masuk ke ringkasan diterima.',
+    deal_masuk: 'Deal baru masuk dan sudah mulai dicatat.',
+    pembelian_produk: 'Produk sedang dibeli atau masih menunggu dikirim.',
+    pembuatan_draft: 'Konten sedang disiapkan.',
+    menunggu_draft_ok: 'Draft sudah dikirim dan menunggu persetujuan.',
+    revisi: 'Ada revisi dari brand yang perlu dikerjakan.',
+    menunggu_posting: 'Konten siap tayang atau dijadwalkan.',
+    menunggu_insight: 'Konten sudah tayang dan tinggal kirim laporan.',
+    menunggu_payment: 'Pekerjaan selesai, tinggal menunggu pembayaran.',
+    selesai: 'Semua tahap sudah selesai.',
 };
 
 const TOUR_STEPS = [
@@ -198,7 +198,7 @@ export default function Dashboard(props) {
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div className="space-y-2">
                             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                                Summary & monitoring
+                                Ringkasan cepat
                             </div>
                             <div>
                                 <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
@@ -239,7 +239,7 @@ export default function Dashboard(props) {
                     />
                     <StatCard label="Total Pendapatan" helper="Fee dan reimburse yang tercatat." value={formatCurrency(totalIncome)} />
                     <StatCard label="Total Modal" helper="Modal produk dan biaya lain." value={formatCurrency(totalCost)} />
-                    <StatCard label="Menunggu Payment" helper="Endorse yang perlu ditagih." value={`${waitingPayment} endorse`} />
+                    <StatCard label="Menunggu Pembayaran" helper="Endorse yang sudah selesai tapi belum dibayar." value={`${waitingPayment} endorse`} />
                 </div>
 
                 <div ref={chartSectionRef} className={cn('rounded-xl border border-border bg-white p-4 shadow-sm', highlighted('chart'))}>
@@ -263,8 +263,8 @@ export default function Dashboard(props) {
                     <div ref={statusSectionRef} className={cn('rounded-xl border border-border bg-white p-4 shadow-sm lg:col-span-2', highlighted('status'))}>
                         <div className="mb-3 flex items-center justify-between">
                             <div>
-                                <h2 className="text-sm font-semibold text-foreground">Status Endorse</h2>
-                                <p className="text-xs text-muted-foreground">Klik status untuk melihat job di tahap tersebut.</p>
+                                <h2 className="text-sm font-semibold text-foreground">Tahap Endorse</h2>
+                                <p className="text-xs text-muted-foreground">Klik tahap untuk melihat pekerjaan yang sedang berjalan.</p>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -298,7 +298,7 @@ export default function Dashboard(props) {
                     <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
                         <div className="mb-3 flex items-center justify-between">
                             <div>
-                                <h2 className="text-sm font-semibold text-foreground">Payment Belum Lunas</h2>
+                                <h2 className="text-sm font-semibold text-foreground">Tagihan Belum Dibayar</h2>
                                 <p className="text-xs text-muted-foreground">Urut dari jatuh tempo terdekat.</p>
                             </div>
                             <Link href="/endorsements?status=menunggu_payment" className="text-xs font-semibold text-primary hover:underline">Lihat</Link>
@@ -307,7 +307,7 @@ export default function Dashboard(props) {
                             {waitingPaymentItems.length === 0 && (
                                 <div className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-6 text-sm text-muted-foreground">
                                     <p className="font-medium text-foreground">Tidak ada tagihan yang menunggu.</p>
-                                    <p className="mt-1">Endorse dengan status Menunggu Payment akan muncul di sini.</p>
+                                    <p className="mt-1">Endorse dengan status Menunggu Pembayaran akan muncul di sini.</p>
                                 </div>
                             )}
                             {waitingPaymentItems.map((item) => (
@@ -325,12 +325,12 @@ export default function Dashboard(props) {
                 <div ref={detailSectionRef} className={cn('space-y-4 rounded-xl border border-border bg-white p-4 shadow-sm', highlighted('details'))}>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">Detail Status</p>
+                            <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">Detail Tahap</p>
                             <h3 className="text-lg font-semibold">{statusOptions[selectedStatus] ?? selectedStatus}</h3>
-                            <p className="text-xs text-muted-foreground">{STATUS_HELPERS[selectedStatus] ?? 'Daftar endorse pada status terpilih.'}</p>
+                            <p className="text-xs text-muted-foreground">{STATUS_HELPERS[selectedStatus] ?? 'Daftar endorse pada tahap terpilih.'}</p>
                         </div>
                         <Link href={`/endorsements?status=${selectedStatus}`} className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
-                            Lihat di Data Endorse
+                            Lihat di Daftar Endorse
                             <ArrowRight className="h-4 w-4" />
                         </Link>
                     </div>
@@ -343,8 +343,8 @@ export default function Dashboard(props) {
                                         <th className="py-2">Brand</th>
                                         <th className="py-2">Platform</th>
                                         <th className="py-2">Posting</th>
-                                        <th className="py-2">Insight</th>
-                                        <th className="py-2">Payment</th>
+                                        <th className="py-2">Laporan</th>
+                                        <th className="py-2">Pembayaran</th>
                                         <th className="py-2 text-right">Laba Bersih</th>
                                         <th className="py-2 text-right">Aksi</th>
                                     </tr>
@@ -413,7 +413,7 @@ export default function Dashboard(props) {
                                 <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                                     <div>Platform<br /><span className="font-semibold text-foreground">{platformOptions[item.platform] ?? item.platform}</span></div>
                                     <div>Posting<br /><span className="font-semibold text-foreground">{item.posting_date ? formatDate(item.posting_date) : '-'}</span></div>
-                                    <div>Insight<br />
+                                    <div>Laporan<br />
                                         {item.insight_sent_at ? (
                                             <span className="font-semibold text-emerald-600">Terkirim</span>
                                         ) : item.insight_due_at ? (
@@ -424,7 +424,7 @@ export default function Dashboard(props) {
                                             '-'
                                         )}
                                     </div>
-                                    <div>Payment<br /><span className="font-semibold text-foreground">{paymentStatusOptions[item.payment_status] ?? item.payment_status}</span></div>
+                                    <div>Pembayaran<br /><span className="font-semibold text-foreground">{paymentStatusOptions[item.payment_status] ?? item.payment_status}</span></div>
                                 </div>
                                 <div className={cn('mt-2 text-sm font-semibold', item.net_profit >= 0 ? 'text-emerald-600' : 'text-red-600')}>
                                     Laba: {formatCurrency(item.net_profit)}
@@ -582,7 +582,7 @@ function QuickStatusControl({
                     onClick={() => onSubmit(item.id)}
                     type="button"
                 >
-                    {isUpdating ? 'Menyimpan...' : 'Update Status'}
+                    {isUpdating ? 'Menyimpan...' : 'Simpan Status'}
                 </button>
                 <Link href={`/endorsements/${item.id}`} className="inline-flex items-center justify-center rounded-md border border-border px-3 py-2 text-center text-xs font-semibold text-foreground hover:bg-muted">
                     Detail

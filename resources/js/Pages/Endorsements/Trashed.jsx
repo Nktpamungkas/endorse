@@ -23,14 +23,14 @@ export default function EndorsementsTrashed({ endorsements, filters }) {
             <div className="space-y-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
-                        <h1 className="text-2xl font-semibold text-foreground">Endorse Dihapus</h1>
-                        <p className="text-sm text-muted-foreground">Arsip data yang dibatalkan beserta alasan hapus.</p>
+                        <h1 className="text-2xl font-semibold text-foreground">Arsip Dihapus</h1>
+                        <p className="text-sm text-muted-foreground">Arsip data yang dibatalkan beserta alasan pembatalan.</p>
                     </div>
                     <Link
                         href="/endorsements"
                         className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted"
                     >
-                        Kembali ke Data
+                        Kembali ke Daftar Endorse
                     </Link>
                 </div>
 

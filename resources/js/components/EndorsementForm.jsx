@@ -5,15 +5,15 @@ import { formatCurrencyInput, toCurrencyDigits } from '@/lib/formatters';
 
 const NA_MODES = ['na_dikirim_brand', 'na_tanpa_produk'];
 const STATUS_FIELD_HINTS = {
-    deal_masuk: 'Pilih ini saat deal baru masuk dan detail campaign mulai dicatat.',
-    pembelian_produk: 'Gunakan saat produk sedang dibeli atau belum sampai.',
-    pembuatan_draft: 'Gunakan saat konten masih dibuat.',
-    menunggu_draft_ok: 'Gunakan saat draft sudah dikirim dan menunggu approval brand.',
-    revisi: 'Gunakan saat ada revisi dari brand.',
-    menunggu_posting: 'Gunakan saat konten siap diposting.',
-    menunggu_insight: 'Gunakan saat konten sudah tayang dan tinggal kirim insight.',
-    menunggu_payment: 'Gunakan saat pekerjaan perlu ditagih.',
-    selesai: 'Gunakan saat campaign sudah selesai.',
+    deal_masuk: 'Pilih saat deal baru masuk dan campaign mulai dicatat.',
+    pembelian_produk: 'Pilih saat produk sedang dibeli atau masih menunggu dikirim.',
+    pembuatan_draft: 'Pilih saat konten masih dalam proses dibuat.',
+    menunggu_draft_ok: 'Pilih saat draft sudah dikirim dan menunggu persetujuan brand.',
+    revisi: 'Pilih saat ada revisi dari brand.',
+    menunggu_posting: 'Pilih saat konten sudah siap tayang.',
+    menunggu_insight: 'Pilih saat konten sudah tayang dan tinggal kirim laporan.',
+    menunggu_payment: 'Pilih saat pekerjaan selesai dan tinggal menunggu pembayaran.',
+    selesai: 'Pilih saat campaign sudah selesai.',
 };
 
 function FieldError({ message }) {
@@ -281,7 +281,7 @@ export default function EndorsementForm({
             </section>
 
             <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
-                <h2 className="text-base font-semibold text-foreground">Checklist Produksi</h2>
+                <h2 className="text-base font-semibold text-foreground">Checklist Pekerjaan</h2>
                 <p className="mt-1 text-sm text-muted-foreground">Centang dan isi tanggal yang membantu memantau progress konten.</p>
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <Checkbox label="Perlu storyline dulu" checked={form.data.storyline_required} name="storyline_required" onChange={(checked) => setData('storyline_required', checked)} />
@@ -298,10 +298,10 @@ export default function EndorsementForm({
                     <Field label="Tanggal Sudah Posting" htmlFor="posted_at" error={form.errors.posted_at} hint="Opsional. Isi jika konten sudah tayang.">
                         <Input id="posted_at" name="posted_at" onChange={(event) => setData('posted_at', event.target.value)} type="date" value={form.data.posted_at} />
                     </Field>
-                    <Field label="Insight Due" htmlFor="insight_due_at" error={form.errors.insight_due_at} hint="Isi jika brand memang minta insight.">
+                    <Field label="Laporan Jatuh Tempo" htmlFor="insight_due_at" error={form.errors.insight_due_at} hint="Isi jika brand memang minta laporan.">
                         <Input id="insight_due_at" name="insight_due_at" onChange={(event) => setData('insight_due_at', event.target.value)} type="date" value={form.data.insight_due_at} />
                     </Field>
-                    <Field label="Tanggal Kirim Insight" htmlFor="insight_sent_at" error={form.errors.insight_sent_at}>
+                    <Field label="Tanggal Kirim Laporan" htmlFor="insight_sent_at" error={form.errors.insight_sent_at}>
                         <Input id="insight_sent_at" name="insight_sent_at" onChange={(event) => setData('insight_sent_at', event.target.value)} type="date" value={form.data.insight_sent_at} />
                     </Field>
                     <Field
@@ -324,8 +324,8 @@ export default function EndorsementForm({
             </section>
 
             <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
-                <h2 className="text-base font-semibold text-foreground">Finansial</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Catat fee, reimburse, modal, dan status payment agar ringkasan tetap akurat.</p>
+                <h2 className="text-base font-semibold text-foreground">Keuangan</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Catat fee, reimburse, modal, dan status pembayaran agar ringkasan tetap akurat.</p>
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <Field
                         label="Skema Finansial *"
@@ -355,7 +355,7 @@ export default function EndorsementForm({
                         disabled={reimburseLocked}
                         hint={form.data.financial_mode === 'reimburse_duluan' ? 'Wajib isi nominal > 0 untuk skema ini.' : 'Akan otomatis 0 untuk skema lain.'}
                     />
-                    <Checkbox label="Beli produk sendiri" checked={form.data.self_purchase} name="self_purchase" onChange={handleSelfPurchaseChange} />
+                    <Checkbox label="Saya beli produk sendiri" checked={form.data.self_purchase} name="self_purchase" onChange={handleSelfPurchaseChange} />
                     <CurrencyField
                         label="Modal Produk"
                         name="product_cost"
@@ -371,7 +371,7 @@ export default function EndorsementForm({
                         onChange={(value) => setData('other_cost', value)}
                         error={form.errors.other_cost}
                     />
-                    <Field label="Bukti Checkout" htmlFor="checkout_proof" error={form.errors.checkout_proof} hint="JPG, PNG, WEBP, atau PDF.">
+                    <Field label="Bukti Pembelian / Checkout" htmlFor="checkout_proof" error={form.errors.checkout_proof} hint="JPG, PNG, WEBP, atau PDF.">
                         <Input
                             id="checkout_proof"
                             disabled={checkoutDisabled}
@@ -388,7 +388,7 @@ export default function EndorsementForm({
                             </p>
                         )}
                     </Field>
-                    <Field label="Status Payment *" htmlFor="payment_status" error={form.errors.payment_status}>
+                    <Field label="Status Pembayaran *" htmlFor="payment_status" error={form.errors.payment_status}>
                         <Select id="payment_status" name="payment_status" onChange={(event) => setData('payment_status', event.target.value)} value={form.data.payment_status}>
                             {Object.entries(paymentStatusOptions).map(([key, label]) => (
                                 <option key={key} value={key}>{label}</option>

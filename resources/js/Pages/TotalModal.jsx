@@ -46,14 +46,14 @@ export default function TotalModal({ endorsements, summary, filters, statusOptio
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div>
                             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                                Financial overview
+                                Ringkasan modal
                             </div>
                             <h1 className="mt-3 text-2xl font-semibold text-foreground">Total Modal</h1>
                             <p className="text-sm text-muted-foreground">Daftar seluruh endorse beserta modal produk, biaya lain, dan total modalnya dalam satu tampilan.</p>
                         </div>
                         <div className="flex flex-wrap gap-2">
                             <Link href="/endorsements" className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted">
-                                Data Endorse
+                                Daftar Endorse
                             </Link>
                             <Link href="/endorsements/create" className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
                                 + Tambah Endorse

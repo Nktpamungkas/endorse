@@ -61,7 +61,7 @@ export default function AppLayout({ children }) {
                         </button>
                         <div>
                             <div className="text-sm font-semibold text-foreground">Endorse Tracker</div>
-                            <div className="text-xs text-muted-foreground">Summary & monitoring</div>
+                            <div className="text-xs text-muted-foreground">Ringkasan cepat</div>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -85,7 +85,7 @@ export default function AppLayout({ children }) {
                         <div className="flex items-center justify-between border-b border-border px-4 py-4">
                             <div>
                                 <div className="text-sm font-semibold text-foreground">Endorse Tracker</div>
-                                <div className="text-xs text-muted-foreground">Summary & monitoring</div>
+                                <div className="text-xs text-muted-foreground">Ringkasan cepat</div>
                             </div>
                             <button
                                 aria-label="Tutup menu"
@@ -108,7 +108,7 @@ export default function AppLayout({ children }) {
                                     icon={ListChecks}
                                     onClick={() => setOpen(false)}
                                 >
-                                    Data Endorse
+                                    Daftar Endorse
                                 </NavLink>
                                 <NavLink href="/endorsements/create" active={current === '/endorsements/create'} icon={PlusCircle} onClick={() => setOpen(false)}>
                                     Tambah Endorse
@@ -120,10 +120,10 @@ export default function AppLayout({ children }) {
                             <div className="space-y-1">
                                 <p className="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Kelola</p>
                                 <NavLink href="/users" active={current.startsWith('/users')} icon={UserCog} onClick={() => setOpen(false)}>
-                                    Kelola User
+                                    Kelola Pengguna
                                 </NavLink>
                                 <NavLink href="/endorsements-deleted" active={current.startsWith('/endorsements-deleted')} icon={Archive} onClick={() => setOpen(false)}>
-                                    Endorse Dihapus
+                                    Arsip Dihapus
                                 </NavLink>
                             </div>
                             <div className="space-y-1">
@@ -135,7 +135,7 @@ export default function AppLayout({ children }) {
                                     <input type="hidden" name="_token" value={csrfToken} />
                                     <button className="sidebar-link flex w-full items-center gap-2 text-left" onClick={() => setOpen(false)} type="submit">
                                         <LogOut className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                        Logout
+                                        Keluar
                                     </button>
                                 </form>
                             </div>
@@ -149,7 +149,7 @@ export default function AppLayout({ children }) {
                     <aside className="sidebar-card rounded-3xl border border-border bg-white shadow-sm">
                         <div className="border-b border-border px-4 py-5">
                             <p className="mb-0 text-lg font-semibold text-foreground">Endorse Tracker</p>
-                            <p className="mb-0 text-sm text-muted-foreground">Summary & monitoring</p>
+                            <p className="mb-0 text-sm text-muted-foreground">Ringkasan cepat</p>
                         </div>
                         <nav className="space-y-4 p-3 text-sm">
                             <div className="space-y-1">
@@ -158,7 +158,7 @@ export default function AppLayout({ children }) {
                                     Dashboard
                                 </NavLink>
                                 <NavLink href="/endorsements" active={isEndorseDataActive} icon={ListChecks}>
-                                    Data Endorse
+                                    Daftar Endorse
                                 </NavLink>
                                 <NavLink href="/endorsements/create" active={current === '/endorsements/create'} icon={PlusCircle}>
                                     Tambah Endorse
@@ -170,10 +170,10 @@ export default function AppLayout({ children }) {
                             <div className="space-y-1">
                                 <p className="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Kelola</p>
                                 <NavLink href="/users" active={current.startsWith('/users')} icon={UserCog}>
-                                    Kelola User
+                                    Kelola Pengguna
                                 </NavLink>
                                 <NavLink href="/endorsements-deleted" active={current.startsWith('/endorsements-deleted')} icon={Archive}>
-                                    Endorse Dihapus
+                                    Arsip Dihapus
                                 </NavLink>
                             </div>
                             <div className="space-y-1">
@@ -185,7 +185,7 @@ export default function AppLayout({ children }) {
                                     <input type="hidden" name="_token" value={csrfToken} />
                                     <button className="sidebar-link flex w-full items-center gap-2 text-left" type="submit">
                                         <LogOut className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                        Logout
+                                        Keluar
                                     </button>
                                 </form>
                             </div>

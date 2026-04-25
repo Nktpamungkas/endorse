@@ -54,8 +54,8 @@ export default function EndorsementsIndex({
             <div className="space-y-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
-                        <h1 className="text-2xl font-semibold text-foreground">Data Endorse</h1>
-                        <p className="text-sm text-muted-foreground">Tracking campaign, revisi, insight, dan payment.</p>
+                        <h1 className="text-2xl font-semibold text-foreground">Daftar Endorse</h1>
+                        <p className="text-sm text-muted-foreground">Tracking campaign, revisi, laporan, dan pembayaran.</p>
                     </div>
                     <Link
                         href="/endorsements/create"
@@ -68,7 +68,7 @@ export default function EndorsementsIndex({
                 <section className="rounded-3xl border border-border bg-white p-4 shadow-sm">
                     <form onSubmit={submitFilters} className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-6">
                         <div className="xl:col-span-2">
-                            <label className="mb-2 block text-sm font-medium text-foreground">Cari brand/campaign</label>
+                            <label className="mb-2 block text-sm font-medium text-foreground">Cari brand / campaign</label>
                             <input
                                 className="w-full rounded-xl border border-border px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
                                 name="q"
@@ -78,7 +78,7 @@ export default function EndorsementsIndex({
                             />
                         </div>
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-foreground">Filter status</label>
+                            <label className="mb-2 block text-sm font-medium text-foreground">Status kerja</label>
                             <select
                                 className="w-full rounded-xl border border-border px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
                                 name="status"
@@ -92,7 +92,7 @@ export default function EndorsementsIndex({
                             </select>
                         </div>
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-foreground">Filter payment</label>
+                            <label className="mb-2 block text-sm font-medium text-foreground">Status pembayaran</label>
                             <select
                                 className="w-full rounded-xl border border-border px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
                                 name="payment_status"
@@ -106,7 +106,7 @@ export default function EndorsementsIndex({
                             </select>
                         </div>
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-foreground">Filter insight</label>
+                            <label className="mb-2 block text-sm font-medium text-foreground">Status laporan</label>
                             <select
                                 className="w-full rounded-xl border border-border px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
                                 name="insight"
@@ -114,9 +114,9 @@ export default function EndorsementsIndex({
                                 value={filterForm.data.insight}
                             >
                                 <option value="">Semua</option>
-                                <option value="waiting">Menunggu Insight</option>
-                                <option value="overdue">Insight Overdue</option>
-                                <option value="sent">Insight Terkirim</option>
+                                <option value="waiting">Menunggu Laporan</option>
+                                <option value="overdue">Laporan Terlambat</option>
+                                <option value="sent">Laporan Terkirim</option>
                             </select>
                         </div>
                         <div>
@@ -138,7 +138,7 @@ export default function EndorsementsIndex({
                                     disabled={filterForm.processing}
                                     type="submit"
                                 >
-                                    {filterForm.processing ? 'Memfilter...' : 'Terapkan Filter'}
+                                    {filterForm.processing ? 'Memfilter...' : 'Terapkan'}
                                 </button>
                                 <button
                                     className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted"

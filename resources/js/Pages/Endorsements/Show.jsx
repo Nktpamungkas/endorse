@@ -97,8 +97,8 @@ export default function EndorsementsShow({
                             <Info label="Produk Diterima" value={endorsement.product_received_at ? formatDate(endorsement.product_received_at) : '-'} />
                             <Info label="Posting Plan" value={endorsement.posting_date ? formatDate(endorsement.posting_date) : '-'} />
                             <Info label="Sudah Posting" value={endorsement.posted_at ? formatDate(endorsement.posted_at) : '-'} />
-                            <Info label="Insight Due" value={endorsement.insight_due_at ? formatDate(endorsement.insight_due_at) : '-'} />
-                            <Info label="Insight Terkirim" value={endorsement.insight_sent_at ? formatDate(endorsement.insight_sent_at) : '-'} />
+                            <Info label="Laporan Jatuh Tempo" value={endorsement.insight_due_at ? formatDate(endorsement.insight_due_at) : '-'} />
+                            <Info label="Laporan Terkirim" value={endorsement.insight_sent_at ? formatDate(endorsement.insight_sent_at) : '-'} />
                             <Info label="Upload Drive" value={endorsement.drive_uploaded ? 'Sudah' : 'Belum'} />
                             <Info label="Storyline" value={endorsement.storyline_text} />
                             <Info label="Boostcode" value={endorsement.boostcode_text} />
@@ -106,7 +106,7 @@ export default function EndorsementsShow({
                     </section>
 
                     <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
-                        <h2 className="text-base font-semibold text-foreground">Finansial</h2>
+                        <h2 className="text-base font-semibold text-foreground">Keuangan</h2>
                         <div className="mt-4 space-y-3 text-sm">
                             <Info label="Skema" value={endorsement.financial_mode_label} />
                             <Info label="Fee" value={formatCurrency(endorsement.fee_amount)} />
@@ -115,13 +115,13 @@ export default function EndorsementsShow({
                             <Info label="Biaya Lain" value={formatCurrency(endorsement.other_cost)} />
                             <Info label="Pendapatan" value={formatCurrency(endorsement.total_income)} />
                             <Info label="Laba Bersih" value={formatCurrency(endorsement.net_profit)} accent={endorsement.net_profit >= 0 ? 'text-emerald-600' : 'text-red-600'} />
-                            <Info label="Payment" value={endorsement.payment_status_label} />
-                            <Info label="Due Payment" value={endorsement.payment_due_date ? formatDate(endorsement.payment_due_date) : '-'} />
-                            <Info label="Payment Masuk" value={endorsement.payment_received_date ? formatDate(endorsement.payment_received_date) : '-'} />
-                            <Info label="Beli sendiri" value={endorsement.self_purchase ? 'Ya' : 'Tidak'} />
+                            <Info label="Pembayaran" value={endorsement.payment_status_label} />
+                            <Info label="Jatuh Tempo Pembayaran" value={endorsement.payment_due_date ? formatDate(endorsement.payment_due_date) : '-'} />
+                            <Info label="Pembayaran Masuk" value={endorsement.payment_received_date ? formatDate(endorsement.payment_received_date) : '-'} />
+                            <Info label="Saya beli sendiri" value={endorsement.self_purchase ? 'Ya' : 'Tidak'} />
                             {endorsement.checkout_proof_url && (
                                 <div>
-                                    <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Bukti Checkout</p>
+                                    <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Bukti Pembelian / Checkout</p>
                                     <a className="mt-1 inline-flex text-sm font-semibold text-primary hover:underline" href={endorsement.checkout_proof_url} target="_blank" rel="noreferrer">
                                         lihat file
                                     </a>
@@ -138,7 +138,7 @@ export default function EndorsementsShow({
 
                 <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
                     <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
-                        <h2 className="text-base font-semibold text-foreground">Tambah Histori Revisi</h2>
+                        <h2 className="text-base font-semibold text-foreground">Tambah Riwayat Revisi</h2>
                         {isDeletedView ? (
                             <p className="mt-3 text-sm text-muted-foreground">Data sudah dibatalkan sehingga tidak dapat menambah revisi baru.</p>
                         ) : (
@@ -206,7 +206,7 @@ export default function EndorsementsShow({
                                         <div>
                                             <p className="font-semibold text-foreground">{formatDate(revision.revision_date)}</p>
                                             <p className="mt-1 text-xs text-muted-foreground">
-                                                {revision.uploaded_to_drive ? 'Upload Drive: Ya' : 'Upload Drive: Tidak'} | {revision.is_approved ? 'Approved' : 'Belum approved'}
+                                                {revision.uploaded_to_drive ? 'Upload Drive: Ya' : 'Upload Drive: Tidak'} | {revision.is_approved ? 'Disetujui' : 'Belum disetujui'}
                                             </p>
                                         </div>
                                         {!isDeletedView && (

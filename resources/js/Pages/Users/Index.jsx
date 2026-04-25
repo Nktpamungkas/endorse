@@ -40,8 +40,8 @@ export default function UsersIndex({ users, filters, stats }) {
             <div className="space-y-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <div>
-                        <p className="text-sm text-muted-foreground">Settings / User & access</p>
-                        <h1 className="text-2xl font-semibold text-foreground">Kelola User</h1>
+                        <p className="text-sm text-muted-foreground">Pengaturan akses</p>
+                        <h1 className="text-2xl font-semibold text-foreground">Kelola Pengguna</h1>
                         <p className="text-sm text-muted-foreground">Kelola akun, durasi sesi, dan aksi cepat seperti force logout atau hapus.</p>
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -58,7 +58,7 @@ export default function UsersIndex({ users, filters, stats }) {
 
                 <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
                     <div className="mb-4">
-                        <p className="text-sm text-muted-foreground">Quick action</p>
+                        <p className="text-sm text-muted-foreground">Aksi cepat</p>
                         <h2 className="text-base font-semibold text-foreground">Tambah User</h2>
                     </div>
                     <form onSubmit={submitCreate} className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -130,10 +130,10 @@ export default function UsersIndex({ users, filters, stats }) {
                 <section className="rounded-3xl border border-border bg-white p-4 shadow-sm">
                     <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <p className="text-sm text-muted-foreground">Users</p>
+                            <p className="text-sm text-muted-foreground">Pengguna</p>
                             <h2 className="text-base font-semibold text-foreground">Daftar User</h2>
                         </div>
-                        <span className="text-xs text-muted-foreground">Edit inline | Logout paksa | Hapus</span>
+                        <span className="text-xs text-muted-foreground">Edit langsung | Paksa keluar | Hapus</span>
                     </div>
 
                     <div className="space-y-3">

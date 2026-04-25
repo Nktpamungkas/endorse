@@ -8,7 +8,7 @@ export default function EndorsementsEdit(props) {
             <div className="space-y-4">
                 <div>
                     <h1 className="text-2xl font-semibold text-foreground">Edit Endorse</h1>
-                    <p className="text-sm text-muted-foreground">{props.endorsement.brand_name} - update progress campaign.</p>
+                    <p className="text-sm text-muted-foreground">{props.endorsement.brand_name} - perbarui detail dan progress campaign.</p>
                 </div>
 
                 <EndorsementForm
