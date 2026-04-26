@@ -257,9 +257,18 @@ class EndorsementController extends Controller
         ]);
 
         $old = $endorsement->status;
-        $endorsement->update([
+        $updateData = [
             'status' => $data['status'],
-        ]);
+        ];
+
+        if ($data['status'] === 'selesai') {
+            $updateData['payment_status'] = 'lunas';
+            if (! $endorsement->payment_received_date) {
+                $updateData['payment_received_date'] = now()->toDateString();
+            }
+        }
+
+        $endorsement->update($updateData);
         $this->logActivity($endorsement, 'status_change', ['from' => $old, 'to' => $data['status']]);
 
         return back()->with('success', 'Status berhasil diupdate.');
@@ -422,6 +431,15 @@ class EndorsementController extends Controller
             'deleted_at' => optional($endorsement->deleted_at)->toIso8601String(),
             'deleted_by_name' => optional($endorsement->deletedBy)->username,
         ];
+    }
+
+    private function resolvePaymentStatus(Endorsement $endorsement): string
+    {
+        if ($endorsement->payment_received_date || $endorsement->status === 'selesai') {
+            return 'lunas';
+        }
+
+        return $endorsement->payment_status;
     }
 
     private function serializeLog(EndorsementActivity $log): array

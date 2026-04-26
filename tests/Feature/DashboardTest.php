@@ -83,6 +83,34 @@ class DashboardTest extends TestCase
                 ->component('Dashboard')
                 ->where('selectedStatusItems.0.brand_name', 'Brand Detail')
                 ->where('selectedStatusItems.0.net_profit', 225000)
+        );
+    }
+
+    public function test_dashboard_treats_completed_work_as_paid(): void
+    {
+        $user = $this->signIn();
+
+        Endorsement::create([
+            'user_id' => $user->id,
+            'brand_name' => 'Brand Lunas',
+            'campaign_name' => 'Campaign Lunas',
+            'platform' => 'tiktok',
+            'content_type' => 'video',
+            'status' => 'selesai',
+            'financial_mode' => 'reimburse_duluan',
+            'payment_status' => 'belum_bayar',
+            'self_purchase' => true,
+            'fee_amount' => 200000,
+            'reimburse_amount' => 50000,
+            'product_cost' => 10000,
+            'other_cost' => 5000,
+        ]);
+
+        $this->get('/dashboard?status_view=selesai')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Dashboard')
+                ->where('selectedStatusItems.0.payment_status', 'lunas')
             );
     }
 

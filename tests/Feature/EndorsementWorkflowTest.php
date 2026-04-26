@@ -75,6 +75,24 @@ class EndorsementWorkflowTest extends TestCase
         $this->assertSame('menunggu_payment', $endorsement->status);
     }
 
+    public function test_completed_status_marks_payment_as_paid(): void
+    {
+        $user = $this->signIn();
+        $endorsement = $this->createEndorsement($user);
+
+        $response = $this->post("/endorsements/{$endorsement->id}/status", [
+            'status' => 'selesai',
+        ]);
+
+        $response->assertRedirect();
+
+        $endorsement->refresh();
+
+        $this->assertSame('selesai', $endorsement->status);
+        $this->assertSame('lunas', $endorsement->payment_status);
+        $this->assertNotNull($endorsement->payment_received_date);
+    }
+
     public function test_user_can_update_fee_for_na_without_self_purchase(): void
     {
         $user = $this->signIn();

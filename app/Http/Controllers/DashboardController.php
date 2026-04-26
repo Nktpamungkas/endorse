@@ -29,11 +29,15 @@ class DashboardController extends Controller
         $receivedNetProfit = (float) Endorsement::where('user_id', Auth::id())
             ->where('status', 'selesai')
             ->sum(DB::raw('(fee_amount + reimburse_amount) - (product_cost + other_cost)'));
-        $waitingPayment = (int) ($statusCounts['menunggu_payment'] ?? 0);
-        $waitingPaymentItems = Endorsement::query()
+        $waitingPaymentItemsQuery = Endorsement::query()
             ->where('user_id', Auth::id())
             ->where('status', 'menunggu_payment')
-            ->orderByRaw("CASE WHEN payment_due_date IS NULL THEN 1 ELSE 0 END, payment_due_date ASC, updated_at DESC")
+            ->where('payment_status', '!=', 'lunas')
+            ->whereNull('payment_received_date')
+            ->orderByRaw("CASE WHEN payment_due_date IS NULL THEN 1 ELSE 0 END, payment_due_date ASC, updated_at DESC");
+
+        $waitingPayment = (int) (clone $waitingPaymentItemsQuery)->count();
+        $waitingPaymentItems = (clone $waitingPaymentItemsQuery)
             ->limit(10)
             ->get()
             ->map(fn (Endorsement $endorsement) => $this->serializeDashboardItem($endorsement));
@@ -95,11 +99,20 @@ class DashboardController extends Controller
             'posting_date' => optional($endorsement->posting_date)->format('Y-m-d'),
             'insight_due_at' => optional($endorsement->insight_due_at)->format('Y-m-d'),
             'insight_sent_at' => optional($endorsement->insight_sent_at)->format('Y-m-d'),
-            'payment_status' => $endorsement->payment_status,
+            'payment_status' => $this->resolvePaymentStatus($endorsement),
             'payment_due_date' => optional($endorsement->payment_due_date)->format('Y-m-d'),
             'total_income' => (float) $endorsement->total_income,
             'total_cost' => (float) $endorsement->total_cost,
             'net_profit' => (float) $endorsement->net_profit,
         ];
+    }
+
+    private function resolvePaymentStatus(Endorsement $endorsement): string
+    {
+        if ($endorsement->payment_received_date || $endorsement->status === 'selesai') {
+            return 'lunas';
+        }
+
+        return $endorsement->payment_status;
     }
 }
