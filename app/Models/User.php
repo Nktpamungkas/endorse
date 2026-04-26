@@ -9,6 +9,8 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Endorsement;
 use App\Models\EndorsementRevision;
+use App\Models\Pemasukan;
+use App\Models\Pengeluaran;
 
 class User extends Authenticatable
 {
@@ -63,5 +65,15 @@ class User extends Authenticatable
     public function endorsementRevisions(): HasMany
     {
         return $this->hasMany(EndorsementRevision::class);
+    }
+
+    public function pemasukan(): HasMany
+    {
+        return $this->hasMany(Pemasukan::class);
+    }
+
+    public function pengeluaran(): HasMany
+    {
+        return $this->hasMany(Pengeluaran::class);
     }
 }

@@ -29,6 +29,18 @@ class InertiaNavigationTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('TotalModal'));
 
+        $this->get('/pemasukan')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('Pemasukan/Index'));
+
+        $this->get('/pengeluaran')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('Pengeluaran/Index'));
+
+        $this->get('/saldo')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('Saldo'));
+
         $this->get('/endorsements/create')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('Endorsements/Create'));

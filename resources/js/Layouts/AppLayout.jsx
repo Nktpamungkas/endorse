@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import {
     Archive,
+    ArrowDownCircle,
+    ArrowUpCircle,
     KeyRound,
     LayoutDashboard,
     ListChecks,
@@ -9,6 +11,7 @@ import {
     Menu,
     PlusCircle,
     UserCog,
+    Wallet,
     WalletCards,
     X,
 } from 'lucide-react';
@@ -116,6 +119,15 @@ export default function AppLayout({ children }) {
                                 <NavLink href="/total-modal" active={current.startsWith('/total-modal')} icon={WalletCards} onClick={() => setOpen(false)}>
                                     Total Modal
                                 </NavLink>
+                                <NavLink href="/pemasukan" active={current.startsWith('/pemasukan')} icon={ArrowUpCircle} onClick={() => setOpen(false)}>
+                                    Pemasukan
+                                </NavLink>
+                                <NavLink href="/pengeluaran" active={current.startsWith('/pengeluaran')} icon={ArrowDownCircle} onClick={() => setOpen(false)}>
+                                    Pengeluaran
+                                </NavLink>
+                                <NavLink href="/saldo" active={current.startsWith('/saldo')} icon={Wallet} onClick={() => setOpen(false)}>
+                                    Saldo
+                                </NavLink>
                             </div>
                             <div className="space-y-1">
                                 <p className="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Kelola</p>
@@ -165,6 +177,15 @@ export default function AppLayout({ children }) {
                                 </NavLink>
                                 <NavLink href="/total-modal" active={current.startsWith('/total-modal')} icon={WalletCards}>
                                     Total Modal
+                                </NavLink>
+                                <NavLink href="/pemasukan" active={current.startsWith('/pemasukan')} icon={ArrowUpCircle}>
+                                    Pemasukan
+                                </NavLink>
+                                <NavLink href="/pengeluaran" active={current.startsWith('/pengeluaran')} icon={ArrowDownCircle}>
+                                    Pengeluaran
+                                </NavLink>
+                                <NavLink href="/saldo" active={current.startsWith('/saldo')} icon={Wallet}>
+                                    Saldo
                                 </NavLink>
                             </div>
                             <div className="space-y-1">

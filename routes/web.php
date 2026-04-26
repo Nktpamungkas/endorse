@@ -5,6 +5,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EndorsementController;
 use App\Http\Controllers\EndorsementRevisionController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\PemasukanController;
+use App\Http\Controllers\PengeluaranController;
+use App\Http\Controllers\SaldoController;
 use App\Http\Controllers\TotalModalController;
 use App\Http\Controllers\UserManageController;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +23,15 @@ Route::get('/ui-demo', function (): Illuminate\View\View {
 
 Route::middleware('single.auth')->group(function (): void {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/pemasukan', [PemasukanController::class, 'index'])->name('pemasukan.index');
+    Route::post('/pemasukan', [PemasukanController::class, 'store'])->name('pemasukan.store');
+    Route::put('/pemasukan/{pemasukan}', [PemasukanController::class, 'update'])->name('pemasukan.update');
+    Route::delete('/pemasukan/{pemasukan}', [PemasukanController::class, 'destroy'])->name('pemasukan.destroy');
+    Route::get('/pengeluaran', [PengeluaranController::class, 'index'])->name('pengeluaran.index');
+    Route::post('/pengeluaran', [PengeluaranController::class, 'store'])->name('pengeluaran.store');
+    Route::put('/pengeluaran/{pengeluaran}', [PengeluaranController::class, 'update'])->name('pengeluaran.update');
+    Route::delete('/pengeluaran/{pengeluaran}', [PengeluaranController::class, 'destroy'])->name('pengeluaran.destroy');
+    Route::get('/saldo', SaldoController::class)->name('saldo.index');
     Route::get('/total-modal', TotalModalController::class)->name('total-modal.index');
     Route::resource('endorsements', EndorsementController::class);
     Route::get('/endorsements-deleted', [EndorsementController::class, 'trashed'])->name('endorsements.trashed');

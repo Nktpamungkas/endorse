@@ -73,11 +73,6 @@
                     </button>
                 </form>
 
-                <div class="login-help mt-4 d-flex align-items-center gap-2 text-muted small">
-                    <span class="opacity-75">Tip:</span>
-                    <span class="fw-semibold">Username/Password: dhedhepratiwi</span>
-                </div>
-
                 <div class="mt-3 text-center">
                     <a href="{{ route('landing') }}" class="text-decoration-none" style="color: hsl(var(--primary));">
                         &larr; Kembali ke beranda
