@@ -257,17 +257,9 @@ class EndorsementController extends Controller
         ]);
 
         $old = $endorsement->status;
-        $updateData = [
+        $updateData = $this->normalizeCompletionPaymentState([
             'status' => $data['status'],
-        ];
-
-        if ($data['status'] === 'selesai') {
-            $updateData['payment_status'] = 'lunas';
-            if (! $endorsement->payment_received_date) {
-                $updateData['payment_received_date'] = now()->toDateString();
-            }
-        }
-
+        ], $endorsement);
         $endorsement->update($updateData);
         $this->logActivity($endorsement, 'status_change', ['from' => $old, 'to' => $data['status']]);
 
@@ -520,6 +512,21 @@ class EndorsementController extends Controller
                 Storage::disk('public')->delete($endorsement->checkout_proof_path);
             }
             $payload['checkout_proof_path'] = $request->file('checkout_proof')->store('checkout-proofs', 'public');
+        }
+
+        return $this->normalizeCompletionPaymentState($payload, $endorsement);
+    }
+
+    private function normalizeCompletionPaymentState(array $payload, ?Endorsement $endorsement = null): array
+    {
+        if (($payload['status'] ?? null) !== 'selesai') {
+            return $payload;
+        }
+
+        $payload['payment_status'] = 'lunas';
+
+        if (! ($endorsement?->payment_received_date) && empty($payload['payment_received_date'] ?? null)) {
+            $payload['payment_received_date'] = now()->toDateString();
         }
 
         return $payload;

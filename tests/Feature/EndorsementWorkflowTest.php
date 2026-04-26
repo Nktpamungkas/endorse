@@ -59,6 +59,53 @@ class EndorsementWorkflowTest extends TestCase
         $this->assertSame('Catatan baru', $endorsement->notes);
     }
 
+    public function test_edit_route_marks_payment_as_paid_when_status_is_completed(): void
+    {
+        $user = $this->signIn();
+        $endorsement = $this->createEndorsement($user);
+
+        $response = $this->post("/endorsements/{$endorsement->id}", [
+            '_method' => 'put',
+            'brand_name' => $endorsement->brand_name,
+            'campaign_name' => $endorsement->campaign_name,
+            'platform' => $endorsement->platform,
+            'content_type' => $endorsement->content_type,
+            'status' => 'selesai',
+            'deal_date' => null,
+            'product_ordered_at' => null,
+            'product_received_at' => null,
+            'draft_deadline' => null,
+            'storyline_required' => false,
+            'storyline_done' => false,
+            'drive_uploaded' => false,
+            'approved_at' => null,
+            'posting_date' => null,
+            'posted_at' => null,
+            'insight_due_at' => null,
+            'insight_sent_at' => null,
+            'boostcode_required' => false,
+            'boostcode_duration_days' => null,
+            'self_purchase' => false,
+            'financial_mode' => 'na_dikirim_brand',
+            'fee_amount' => 150000,
+            'reimburse_amount' => 0,
+            'product_cost' => 0,
+            'other_cost' => 10000,
+            'payment_status' => 'belum_bayar',
+            'payment_due_date' => null,
+            'payment_received_date' => null,
+            'notes' => 'Sudah selesai dan sudah dibayar',
+        ]);
+
+        $response->assertRedirect("/endorsements/{$endorsement->id}");
+
+        $endorsement->refresh();
+
+        $this->assertSame('selesai', $endorsement->status);
+        $this->assertSame('lunas', $endorsement->payment_status);
+        $this->assertNotNull($endorsement->payment_received_date);
+    }
+
     public function test_user_can_update_endorsement_status_from_dashboard(): void
     {
         $user = $this->signIn();
