@@ -86,7 +86,7 @@ class DashboardTest extends TestCase
         );
     }
 
-    public function test_dashboard_treats_completed_work_as_paid(): void
+    public function test_dashboard_detail_status_items_follow_database_payment_status(): void
     {
         $user = $this->signIn();
 
@@ -110,7 +110,7 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')
-                ->where('selectedStatusItems.0.payment_status', 'lunas')
+                ->where('selectedStatusItems.0.payment_status', 'belum_bayar')
             );
     }
 

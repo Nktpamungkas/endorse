@@ -99,20 +99,11 @@ class DashboardController extends Controller
             'posting_date' => optional($endorsement->posting_date)->format('Y-m-d'),
             'insight_due_at' => optional($endorsement->insight_due_at)->format('Y-m-d'),
             'insight_sent_at' => optional($endorsement->insight_sent_at)->format('Y-m-d'),
-            'payment_status' => $this->resolvePaymentStatus($endorsement),
+            'payment_status' => $endorsement->payment_status,
             'payment_due_date' => optional($endorsement->payment_due_date)->format('Y-m-d'),
             'total_income' => (float) $endorsement->total_income,
             'total_cost' => (float) $endorsement->total_cost,
             'net_profit' => (float) $endorsement->net_profit,
         ];
-    }
-
-    private function resolvePaymentStatus(Endorsement $endorsement): string
-    {
-        if ($endorsement->payment_received_date || $endorsement->status === 'selesai') {
-            return 'lunas';
-        }
-
-        return $endorsement->payment_status;
     }
 }
