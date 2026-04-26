@@ -81,8 +81,8 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')
-                ->where('selectedStatusItems.0.brand_name', 'Brand Detail')
-                ->where('selectedStatusItems.0.net_profit', 225000)
+                ->where('selectedStatusItems.data.0.brand_name', 'Brand Detail')
+                ->where('selectedStatusItems.data.0.net_profit', 225000)
         );
     }
 
@@ -110,7 +110,53 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')
-                ->where('selectedStatusItems.0.payment_status', 'belum_bayar')
+                ->where('selectedStatusItems.data.0.payment_status', 'belum_bayar')
+            );
+    }
+
+    public function test_dashboard_detail_status_items_can_be_filtered_by_search(): void
+    {
+        $user = $this->signIn();
+
+        Endorsement::create([
+            'user_id' => $user->id,
+            'brand_name' => 'Brand Alpha',
+            'campaign_name' => 'Campaign Satu',
+            'platform' => 'tiktok',
+            'content_type' => 'video',
+            'status' => 'deal_masuk',
+            'financial_mode' => 'reimburse_duluan',
+            'payment_status' => 'belum_bayar',
+            'self_purchase' => true,
+            'fee_amount' => 100000,
+            'reimburse_amount' => 0,
+            'product_cost' => 10000,
+            'other_cost' => 5000,
+        ]);
+
+        Endorsement::create([
+            'user_id' => $user->id,
+            'brand_name' => 'Brand Beta',
+            'campaign_name' => 'Campaign Dua',
+            'platform' => 'instagram',
+            'content_type' => 'reels',
+            'status' => 'deal_masuk',
+            'financial_mode' => 'na_tanpa_produk',
+            'payment_status' => 'belum_bayar',
+            'self_purchase' => false,
+            'fee_amount' => 50000,
+            'reimburse_amount' => 0,
+            'product_cost' => 0,
+            'other_cost' => 0,
+        ]);
+
+        $this->get('/dashboard?status_view=deal_masuk&status_search=Alpha')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Dashboard')
+                ->where('selectedStatusItems.total', 1)
+                ->where('selectedStatusItems.data.0.brand_name', 'Brand Alpha')
+                ->where('selectedStatusFilters.status_search', 'Alpha')
             );
     }
 

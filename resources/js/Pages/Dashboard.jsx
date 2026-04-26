@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { Chart } from 'chart.js/auto';
 import { ArrowRight, BarChart3, CalendarClock, CircleDollarSign, Layers3, ReceiptText, X } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
+import Pagination from '@/components/Pagination';
 import { cn } from '@/lib/utils';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 
@@ -57,6 +58,7 @@ export default function Dashboard(props) {
         waitingPaymentItems,
         selectedStatus,
         selectedStatusItems,
+        selectedStatusFilters,
         statusOptions,
         platformOptions,
         paymentStatusOptions,
@@ -73,6 +75,11 @@ export default function Dashboard(props) {
     const [tourIndex, setTourIndex] = useState(0);
     const [statusDrafts, setStatusDrafts] = useState({});
     const [updatingId, setUpdatingId] = useState(null);
+    const detailItems = selectedStatusItems.data ?? [];
+    const detailFilterForm = useForm({
+        status_search: selectedStatusFilters.status_search ?? '',
+        status_per_page: String(selectedStatusFilters.status_per_page ?? 10),
+    });
 
     useEffect(() => {
         if (!chartRef.current) {
@@ -159,9 +166,16 @@ export default function Dashboard(props) {
 
     useEffect(() => {
         setStatusDrafts(
-            Object.fromEntries(selectedStatusItems.map((item) => [item.id, item.status])),
+            Object.fromEntries(detailItems.map((item) => [item.id, item.status])),
         );
-    }, [selectedStatusItems]);
+    }, [detailItems]);
+
+    useEffect(() => {
+        detailFilterForm.setData({
+            status_search: selectedStatusFilters.status_search ?? '',
+            status_per_page: String(selectedStatusFilters.status_per_page ?? 10),
+        });
+    }, [selectedStatusFilters.status_search, selectedStatusFilters.status_per_page]);
 
     const highlighted = (target) => (
         tourOpen && TOUR_STEPS[tourIndex].target === target
@@ -188,6 +202,32 @@ export default function Dashboard(props) {
         }, {
             preserveScroll: true,
             onFinish: () => setUpdatingId(null),
+        });
+    };
+
+    const submitDetailFilters = (event) => {
+        event.preventDefault();
+        router.get('/dashboard', {
+            status_view: selectedStatus,
+            ...buildQuery(detailFilterForm.data),
+        }, {
+            preserveScroll: true,
+            replace: true,
+        });
+    };
+
+    const setDetailPerPage = (value) => {
+        const next = {
+            ...detailFilterForm.data,
+            status_per_page: value,
+        };
+        detailFilterForm.setData('status_per_page', value);
+        router.get('/dashboard', {
+            status_view: selectedStatus,
+            ...buildQuery(next),
+        }, {
+            preserveScroll: true,
+            replace: true,
         });
     };
 
@@ -335,6 +375,38 @@ export default function Dashboard(props) {
                         </Link>
                     </div>
 
+                    <form onSubmit={submitDetailFilters} className="grid grid-cols-1 gap-3 rounded-xl border border-border bg-muted/20 p-3 md:grid-cols-[1fr_auto_auto]">
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-foreground">Cari brand / campaign</label>
+                            <input
+                                className="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+                                onChange={(event) => detailFilterForm.setData('status_search', event.target.value)}
+                                placeholder="Cari data di tahap ini..."
+                                value={detailFilterForm.data.status_search}
+                            />
+                        </div>
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-foreground">Per halaman</label>
+                            <select
+                                className="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+                                onChange={(event) => setDetailPerPage(event.target.value)}
+                                value={detailFilterForm.data.status_per_page}
+                            >
+                                {[10, 25, 50, 100].map((value) => (
+                                    <option key={value} value={value}>{value}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="flex items-end gap-2">
+                            <button className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90" type="submit">
+                                Terapkan
+                            </button>
+                            <Link href={`/dashboard?status_view=${selectedStatus}`} className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-white hover:bg-muted">
+                                Reset
+                            </Link>
+                        </div>
+                    </form>
+
                     <div className="hidden lg:block">
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-sm">
@@ -350,14 +422,14 @@ export default function Dashboard(props) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
-                                    {selectedStatusItems.length === 0 && (
+                                    {detailItems.length === 0 && (
                                         <tr>
                                             <td colSpan={7} className="py-6">
                                                 <EmptyStatusState selectedStatus={selectedStatus} statusOptions={statusOptions} />
                                             </td>
                                         </tr>
                                     )}
-                                    {selectedStatusItems.map((item) => (
+                                    {detailItems.map((item) => (
                                         <tr key={item.id} className="transition hover:bg-muted/40">
                                             <td className="py-2">
                                                 <div className="font-semibold">{item.brand_name}</div>
@@ -398,8 +470,8 @@ export default function Dashboard(props) {
                     </div>
 
                     <div className="grid grid-cols-1 gap-3 lg:hidden">
-                        {selectedStatusItems.length === 0 && <EmptyStatusState selectedStatus={selectedStatus} statusOptions={statusOptions} />}
-                        {selectedStatusItems.map((item) => (
+                        {detailItems.length === 0 && <EmptyStatusState selectedStatus={selectedStatus} statusOptions={statusOptions} />}
+                        {detailItems.map((item) => (
                             <div key={item.id} className="rounded-xl border border-border bg-white p-3 shadow-sm">
                                 <div className="flex justify-between gap-2">
                                     <div>
@@ -443,6 +515,13 @@ export default function Dashboard(props) {
                             </div>
                         ))}
                     </div>
+
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-xs text-muted-foreground">
+                            Menampilkan {selectedStatusItems.from ?? 0}-{selectedStatusItems.to ?? 0} dari {selectedStatusItems.total ?? 0} data
+                        </p>
+                        <Pagination links={selectedStatusItems.links} />
+                    </div>
                 </div>
             </div>
 
@@ -463,6 +542,12 @@ export default function Dashboard(props) {
                 steps={TOUR_STEPS}
             />
         </AppLayout>
+    );
+}
+
+function buildQuery(data) {
+    return Object.fromEntries(
+        Object.entries(data).filter(([, value]) => value !== '' && value !== null && value !== undefined),
     );
 }
 

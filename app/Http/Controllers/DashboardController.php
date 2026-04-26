@@ -6,17 +6,20 @@ use App\Models\Endorsement;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): Response
+    public function __invoke(Request $request): Response
     {
-        $selectedStatus = request()->query('status_view', 'deal_masuk');
+        $selectedStatus = $request->query('status_view', 'deal_masuk');
         if (! array_key_exists($selectedStatus, Endorsement::STATUS_OPTIONS)) {
             $selectedStatus = 'deal_masuk';
         }
+        $statusSearch = (string) $request->string('status_search');
+        $statusPerPage = max(10, min((int) $request->integer('status_per_page', 10), 100));
 
         $statusCounts = Endorsement::query()
             ->where('user_id', Auth::id())
@@ -42,13 +45,22 @@ class DashboardController extends Controller
             ->get()
             ->map(fn (Endorsement $endorsement) => $this->serializeDashboardItem($endorsement));
 
-        $selectedStatusItems = Endorsement::query()
+        $selectedStatusItemsQuery = Endorsement::query()
             ->where('user_id', Auth::id())
             ->where('status', $selectedStatus)
-            ->orderByDesc('updated_at')
-            ->limit(10)
-            ->get()
-            ->map(fn (Endorsement $endorsement) => $this->serializeDashboardItem($endorsement));
+            ->orderByDesc('updated_at');
+
+        if ($statusSearch !== '') {
+            $selectedStatusItemsQuery->where(function ($builder) use ($statusSearch): void {
+                $builder->where('brand_name', 'like', '%'.$statusSearch.'%')
+                    ->orWhere('campaign_name', 'like', '%'.$statusSearch.'%');
+            });
+        }
+
+        $selectedStatusItems = $selectedStatusItemsQuery
+            ->paginate($statusPerPage)
+            ->withQueryString()
+            ->through(fn (Endorsement $endorsement) => $this->serializeDashboardItem($endorsement));
 
         $rawMonthlyStats = Endorsement::query()
             ->where('user_id', Auth::id())
@@ -81,6 +93,10 @@ class DashboardController extends Controller
             'waitingPaymentItems' => $waitingPaymentItems,
             'selectedStatus' => $selectedStatus,
             'selectedStatusItems' => $selectedStatusItems,
+            'selectedStatusFilters' => [
+                'status_search' => $statusSearch,
+                'status_per_page' => $statusPerPage,
+            ],
             'statusOptions' => Endorsement::STATUS_OPTIONS,
             'platformOptions' => Endorsement::PLATFORM_OPTIONS,
             'paymentStatusOptions' => Endorsement::PAYMENT_STATUS_OPTIONS,
