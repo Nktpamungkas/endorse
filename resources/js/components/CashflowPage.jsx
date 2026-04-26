@@ -10,6 +10,15 @@ function buildQuery(data) {
     );
 }
 
+function getTodayISODate() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
 export default function CashflowPage({
     title,
     description,
@@ -20,8 +29,9 @@ export default function CashflowPage({
     editing,
     accentLabel,
 }) {
+    const createDefaultDate = getTodayISODate();
     const form = useForm({
-        tanggal: editing?.tanggal ?? '',
+        tanggal: editing?.tanggal ?? createDefaultDate,
         deskripsi: editing?.deskripsi ?? '',
         jumlah: editing ? toCurrencyDigits(editing.jumlah) : '',
     });
@@ -33,11 +43,11 @@ export default function CashflowPage({
 
     useEffect(() => {
         form.setData(() => ({
-            tanggal: editing?.tanggal ?? '',
+            tanggal: editing?.tanggal ?? createDefaultDate,
             deskripsi: editing?.deskripsi ?? '',
             jumlah: editing ? toCurrencyDigits(editing.jumlah) : '',
         }));
-    }, [editing]);
+    }, [editing, createDefaultDate]);
 
     const submitFilters = (event) => {
         event.preventDefault();
@@ -85,7 +95,9 @@ export default function CashflowPage({
             return;
         }
 
-        router.delete(`${routePrefix}/${item.id}`, {
+        router.post(`${routePrefix}/${item.id}`, {
+            _method: 'delete',
+        }, {
             preserveScroll: true,
         });
     };
@@ -134,6 +146,7 @@ export default function CashflowPage({
                                     type="date"
                                     value={form.data.tanggal}
                                 />
+                                {form.errors.tanggal && <p className="mt-1 text-xs text-red-600">{form.errors.tanggal}</p>}
                             </div>
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-foreground">Deskripsi</label>
@@ -143,6 +156,7 @@ export default function CashflowPage({
                                     placeholder="Contoh: Fee live affiliate"
                                     value={form.data.deskripsi}
                                 />
+                                {form.errors.deskripsi && <p className="mt-1 text-xs text-red-600">{form.errors.deskripsi}</p>}
                             </div>
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-foreground">Jumlah</label>
@@ -156,6 +170,7 @@ export default function CashflowPage({
                                         value={formatCurrencyInput(form.data.jumlah)}
                                     />
                                 </div>
+                                {form.errors.jumlah && <p className="mt-1 text-xs text-red-600">{form.errors.jumlah}</p>}
                             </div>
 
                             <div className="flex flex-col gap-2 pt-2 sm:flex-row">

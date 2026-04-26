@@ -51,10 +51,12 @@ class PengeluaranController extends Controller
 
     public function store(CashflowRequest $request): RedirectResponse
     {
-        Pengeluaran::create([
-            ...$request->validated(),
+        Pengeluaran::create(array_merge(
+            $request->validated(),
+            [
             'user_id' => Auth::id(),
-        ]);
+            ]
+        ));
 
         return redirect()->route('pengeluaran.index')->with('success', 'Pengeluaran berhasil ditambahkan.');
     }
