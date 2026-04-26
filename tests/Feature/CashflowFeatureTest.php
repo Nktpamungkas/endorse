@@ -103,10 +103,10 @@ class CashflowFeatureTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Saldo')
-                ->where('summary.total_diterima', 600000)
+                ->where('summary.total_diterima', 585000)
                 ->where('summary.total_pemasukan', 200000)
                 ->where('summary.total_pengeluaran', 150000)
-                ->where('summary.saldo_akhir', 650000)
+                ->where('summary.saldo_akhir', 635000)
             );
     }
 

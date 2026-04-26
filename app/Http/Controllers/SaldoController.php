@@ -19,7 +19,7 @@ class SaldoController extends Controller
         $totalDiterima = (float) Endorsement::query()
             ->where('user_id', $userId)
             ->where('payment_status', 'lunas')
-            ->sum(DB::raw('fee_amount + reimburse_amount'));
+            ->sum(DB::raw('(fee_amount + reimburse_amount) - (product_cost + other_cost)'));
         $totalPemasukan = (float) Pemasukan::query()
             ->where('user_id', $userId)
             ->sum('jumlah');
