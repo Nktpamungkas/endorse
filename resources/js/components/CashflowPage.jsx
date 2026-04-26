@@ -75,7 +75,8 @@ export default function CashflowPage({
                 ...data,
                 jumlah: data.jumlah || 0,
                 _method: 'put',
-            })).post(`${routePrefix}/${editing.id}`, {
+            }));
+            form.post(`${routePrefix}/${editing.id}`, {
                 preserveScroll: true,
             });
 
@@ -85,7 +86,8 @@ export default function CashflowPage({
         form.transform((data) => ({
             ...data,
             jumlah: data.jumlah || 0,
-        })).post(routePrefix, {
+        }));
+        form.post(routePrefix, {
             preserveScroll: true,
         });
     };
