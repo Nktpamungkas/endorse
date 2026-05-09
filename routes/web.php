@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DatabaseBackupController;
 use App\Http\Controllers\EndorsementController;
 use App\Http\Controllers\EndorsementRevisionController;
 use App\Http\Controllers\LandingController;
@@ -48,6 +49,10 @@ Route::middleware('single.auth')->group(function (): void {
     Route::post('/users/{user}', [UserManageController::class, 'update'])->name('users.update');
     Route::post('/users/{user}/force-logout', [UserManageController::class, 'forceLogout'])->name('users.forceLogout');
     Route::delete('/users/{user}', [UserManageController::class, 'destroy'])->name('users.destroy');
+    Route::get('/database-backups', [DatabaseBackupController::class, 'index'])->name('database-backups.index');
+    Route::post('/database-backups/settings', [DatabaseBackupController::class, 'update'])->name('database-backups.update');
+    Route::post('/database-backups/run', [DatabaseBackupController::class, 'runNow'])->name('database-backups.run');
+    Route::get('/database-backups/{backupLog}/download', [DatabaseBackupController::class, 'download'])->name('database-backups.download');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/profile/password', [AuthController::class, 'showPasswordForm'])->name('password.form');
     Route::post('/profile/password', [AuthController::class, 'updatePassword'])->name('password.update');

@@ -4,6 +4,7 @@ import {
     Archive,
     ArrowDownCircle,
     ArrowUpCircle,
+    Database,
     KeyRound,
     LayoutDashboard,
     ListChecks,
@@ -35,6 +36,8 @@ export default function AppLayout({ children }) {
     const [open, setOpen] = useState(false);
     const { url, props } = usePage();
     const current = (url || '').split('?')[0];
+    const currentUser = props.auth?.user ?? null;
+    const isMaster = currentUser?.role === 'master';
     const isEndorseDataActive = current.startsWith('/endorsements')
         && current !== '/endorsements/create'
         && !current.startsWith('/endorsements-deleted');
@@ -134,6 +137,11 @@ export default function AppLayout({ children }) {
                                 <NavLink href="/users" active={current.startsWith('/users')} icon={UserCog} onClick={() => setOpen(false)}>
                                     Kelola Pengguna
                                 </NavLink>
+                                {isMaster && (
+                                    <NavLink href="/database-backups" active={current.startsWith('/database-backups')} icon={Database} onClick={() => setOpen(false)}>
+                                        Backup Database
+                                    </NavLink>
+                                )}
                                 <NavLink href="/endorsements-deleted" active={current.startsWith('/endorsements-deleted')} icon={Archive} onClick={() => setOpen(false)}>
                                     Arsip Dihapus
                                 </NavLink>
@@ -193,6 +201,11 @@ export default function AppLayout({ children }) {
                                 <NavLink href="/users" active={current.startsWith('/users')} icon={UserCog}>
                                     Kelola Pengguna
                                 </NavLink>
+                                {isMaster && (
+                                    <NavLink href="/database-backups" active={current.startsWith('/database-backups')} icon={Database}>
+                                        Backup Database
+                                    </NavLink>
+                                )}
                                 <NavLink href="/endorsements-deleted" active={current.startsWith('/endorsements-deleted')} icon={Archive}>
                                     Arsip Dihapus
                                 </NavLink>

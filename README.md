@@ -91,3 +91,20 @@ php artisan serve
 
 - Pastikan PHP extension `pdo_sqlsrv` dan `sqlsrv` aktif di `php.ini`.
 - Pastikan SQL Server menerima koneksi TCP (`1433`).
+
+## Database Backup
+
+- Halaman backup tersedia di menu `Backup Database` untuk akun `master`
+- Dari UI Anda bisa menjalankan backup manual, mengatur hari dan jam backup otomatis, melihat log, dan mengunduh file hasil backup
+- File backup disimpan di `storage/app/backups/database`
+- Jalankan migrasi setelah deploy:
+
+```bash
+php artisan migrate
+```
+
+- Supaya jadwal dari UI benar-benar jalan otomatis di VPS, server tetap harus menjalankan scheduler Laravel tiap menit:
+
+```bash
+* * * * * cd /path/project && php artisan schedule:run >> /dev/null 2>&1
+```
