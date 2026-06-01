@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import Pagination from '@/components/Pagination';
 import { formatCurrency, formatDate } from '@/lib/formatters';
@@ -26,24 +26,25 @@ export default function EndorsementsIndex({
 
     const submitFilters = (event) => {
         event.preventDefault();
-        filterForm.get('/endorsements', {
+        router.get('/endorsements', buildQuery(filterForm.data), {
             preserveScroll: true,
+            preserveState: true,
             replace: true,
-            data: buildQuery(filterForm.data),
         });
     };
 
     const setPerPage = (value) => {
         filterForm.setData('per_page', value);
-        filterForm.get('/endorsements', {
+        router.get('/endorsements', buildQuery({ ...filterForm.data, per_page: value }), {
             preserveScroll: true,
+            preserveState: true,
             replace: true,
-            data: buildQuery({ ...filterForm.data, per_page: value }),
         });
     };
 
     const resetFilters = () => {
-        filterForm.get('/endorsements', {
+        filterForm.reset();
+        router.get('/endorsements', {}, {
             preserveScroll: true,
             replace: true,
         });
