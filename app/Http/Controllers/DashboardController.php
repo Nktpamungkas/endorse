@@ -31,7 +31,11 @@ class DashboardController extends Controller
         $totalIncome = (float) Endorsement::where('user_id', $userId)->sum(DB::raw('fee_amount + reimburse_amount'));
         $totalCost = (float) Endorsement::where('user_id', $userId)->sum(DB::raw('product_cost + other_cost'));
         $receivedNetProfit = (float) Endorsement::where('user_id', $userId)
-            ->where('status', 'selesai')
+            ->where(function ($q) {
+                $q->where('payment_status', 'lunas')
+                    ->orWhere('status', 'selesai')
+                    ->orWhereNotNull('payment_received_date');
+            })
             ->sum(DB::raw('(fee_amount + reimburse_amount) - (product_cost + other_cost)'));
         $waitingPaymentItemsQuery = Endorsement::query()
             ->where('user_id', $userId)

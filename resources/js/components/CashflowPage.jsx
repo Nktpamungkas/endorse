@@ -51,19 +51,19 @@ export default function CashflowPage({
 
     const submitFilters = (event) => {
         event.preventDefault();
-        filterForm.get(routePrefix, {
+        router.get(routePrefix, buildQuery(filterForm.data), {
             preserveScroll: true,
+            preserveState: true,
             replace: true,
-            data: buildQuery(filterForm.data),
         });
     };
 
     const setPerPage = (value) => {
         filterForm.setData('per_page', value);
-        filterForm.get(routePrefix, {
+        router.get(routePrefix, buildQuery({ ...filterForm.data, per_page: value }), {
             preserveScroll: true,
+            preserveState: true,
             replace: true,
-            data: buildQuery({ ...filterForm.data, per_page: value }),
         });
     };
 
