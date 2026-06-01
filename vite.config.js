@@ -17,6 +17,9 @@ export default defineConfig({
         },
     },
     server: {
+        hmr: {
+            host: 'nale-hanan.my.id',
+        },
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },
