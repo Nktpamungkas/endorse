@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, router, useForm } from '@inertiajs/react';
+import { X } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 
@@ -15,6 +16,10 @@ export default function EndorsementsShow({
         is_approved: false,
         note: '',
     });
+    const deleteForm = useForm({
+        delete_reason: '',
+    });
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     const submitRevision = (event) => {
         event.preventDefault();
@@ -24,15 +29,27 @@ export default function EndorsementsShow({
         });
     };
 
-    const handleDelete = () => {
-        const reason = window.prompt('Alasan pembatalan endorse? (wajib diisi)');
-        if (!reason || !reason.trim()) {
+    const openDeleteDialog = () => {
+        deleteForm.reset();
+        deleteForm.clearErrors();
+        setDeleteDialogOpen(true);
+    };
+
+    const submitDelete = (event) => {
+        event.preventDefault();
+
+        if (!deleteForm.data.delete_reason.trim()) {
+            deleteForm.setError('delete_reason', 'Alasan pembatalan wajib diisi.');
             return;
         }
 
-        router.delete(`/endorsements/${endorsement.id}`, {
-            data: { delete_reason: reason.trim().slice(0, 500) },
-        });
+        deleteForm
+            .transform((data) => ({
+                delete_reason: data.delete_reason.trim().slice(0, 500),
+            }))
+            .delete(`/endorsements/${endorsement.id}`, {
+                onSuccess: () => setDeleteDialogOpen(false),
+            });
     };
 
     const destroyRevision = (revisionId) => {
@@ -67,7 +84,7 @@ export default function EndorsementsShow({
                             </Link>
                             <button
                                 className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100"
-                                onClick={handleDelete}
+                                onClick={openDeleteDialog}
                                 type="button"
                             >
                                 Hapus
@@ -249,6 +266,14 @@ export default function EndorsementsShow({
                     </div>
                 </section>
             </div>
+
+            <DeleteEndorseModal
+                endorsement={endorsement}
+                form={deleteForm}
+                isOpen={deleteDialogOpen}
+                onClose={() => setDeleteDialogOpen(false)}
+                onSubmit={submitDelete}
+            />
         </AppLayout>
     );
 }
@@ -258,6 +283,71 @@ function Info({ label, value, accent = '' }) {
         <div>
             <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
             <p className={`mt-1 text-sm font-medium text-foreground ${accent}`}>{value}</p>
+        </div>
+    );
+}
+
+function DeleteEndorseModal({ endorsement, form, isOpen, onClose, onSubmit }) {
+    if (!isOpen) {
+        return null;
+    }
+
+    return (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/50 px-4">
+            <div className="w-full max-w-lg rounded-2xl border border-border bg-white p-5 shadow-2xl">
+                <div className="flex items-start justify-between gap-4">
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-red-600">Batalkan endorse</p>
+                        <h3 className="mt-2 text-lg font-semibold text-foreground">{endorsement.brand_name}</h3>
+                        <p className="text-sm text-muted-foreground">{endorsement.campaign_name || 'Tanpa nama campaign'}</p>
+                    </div>
+                    <button
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:bg-muted"
+                        onClick={onClose}
+                        type="button"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+
+                <form onSubmit={onSubmit} className="mt-5 space-y-4">
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-foreground">Alasan pembatalan</label>
+                        <textarea
+                            className="min-h-28 w-full rounded-xl border border-border px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+                            maxLength={500}
+                            onChange={(event) => form.setData('delete_reason', event.target.value)}
+                            placeholder="Contoh: campaign dibatalkan brand, brief berubah, atau produk tidak jadi dikirim."
+                            value={form.data.delete_reason}
+                        />
+                        <div className="mt-1 flex items-center justify-between gap-3 text-xs">
+                            <span className="text-red-600">{form.errors.delete_reason}</span>
+                            <span className="text-muted-foreground">{form.data.delete_reason.length}/500</span>
+                        </div>
+                    </div>
+
+                    <div className="rounded-xl bg-amber-50 px-3 py-3 text-sm text-amber-800">
+                        Data akan pindah ke Arsip Dihapus dan alasan pembatalan tersimpan di detail arsip.
+                    </div>
+
+                    <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                        <button
+                            className="inline-flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted"
+                            onClick={onClose}
+                            type="button"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={form.processing || !form.data.delete_reason.trim()}
+                            type="submit"
+                        >
+                            {form.processing ? 'Memindahkan...' : 'Pindahkan ke Arsip'}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 }

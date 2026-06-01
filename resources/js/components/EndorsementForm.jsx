@@ -1,9 +1,20 @@
 import React, { useRef } from 'react';
 import { Link, useForm } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
-import { formatCurrencyInput, toCurrencyDigits } from '@/lib/formatters';
+import { formatCurrency, formatCurrencyInput, toCurrencyDigits } from '@/lib/formatters';
 
 const NA_MODES = ['na_dikirim_brand', 'na_tanpa_produk'];
+const STATUS_ORDER = [
+    'deal_masuk',
+    'pembelian_produk',
+    'pembuatan_draft',
+    'menunggu_draft_ok',
+    'revisi',
+    'menunggu_posting',
+    'menunggu_insight',
+    'menunggu_payment',
+    'selesai',
+];
 const STATUS_FIELD_HINTS = {
     deal_masuk: 'Pilih saat deal baru masuk dan campaign mulai dicatat.',
     pembelian_produk: 'Pilih saat produk sedang dibeli atau masih menunggu dikirim.',
@@ -110,6 +121,63 @@ function CurrencyField({ label, name, value, onChange, error, hint, disabled, cl
     );
 }
 
+function addDaysISODate(value, days) {
+    if (!value) {
+        return '';
+    }
+
+    const date = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(date.getTime())) {
+        return '';
+    }
+
+    date.setDate(date.getDate() + days);
+
+    return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, '0'),
+        String(date.getDate()).padStart(2, '0'),
+    ].join('-');
+}
+
+function getTodayISODate() {
+    const date = new Date();
+
+    return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, '0'),
+        String(date.getDate()).padStart(2, '0'),
+    ].join('-');
+}
+
+function liftStatus(current, target) {
+    const currentRank = STATUS_ORDER.indexOf(current);
+    const targetRank = STATUS_ORDER.indexOf(target);
+
+    if (targetRank === -1) {
+        return current;
+    }
+
+    if (currentRank === -1 || currentRank < targetRank) {
+        return target;
+    }
+
+    return current;
+}
+
+function amount(value) {
+    return Number(toCurrencyDigits(value) || 0);
+}
+
+function SummaryMetric({ label, value, accent }) {
+    return (
+        <div>
+            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className={cn('mt-1 text-base font-semibold text-foreground', accent)}>{value}</p>
+        </div>
+    );
+}
+
 export default function EndorsementForm({
     endorsement,
     statusOptions,
@@ -167,8 +235,83 @@ export default function EndorsementForm({
     const productLocked = !form.data.self_purchase;
     const checkoutDisabled = !form.data.self_purchase;
     const actionUrl = isEdit ? `/endorsements/${endorsement.id}` : '/endorsements';
+    const totalIncome = amount(form.data.fee_amount) + amount(form.data.reimburse_amount);
+    const totalCost = amount(form.data.product_cost) + amount(form.data.other_cost);
+    const netProfit = totalIncome - totalCost;
 
     const setData = (key, value) => form.setData(key, value);
+
+    const applyStatusFromField = (key, value, targetStatus) => {
+        form.setData((data) => ({
+            ...data,
+            [key]: value,
+            status: value ? liftStatus(data.status, targetStatus) : data.status,
+        }));
+    };
+
+    const handleProductOrderedChange = (value) => {
+        applyStatusFromField('product_ordered_at', value, 'pembelian_produk');
+    };
+
+    const handleProductReceivedChange = (value) => {
+        applyStatusFromField('product_received_at', value, 'pembuatan_draft');
+    };
+
+    const handleStorylineDoneChange = (checked) => {
+        form.setData((data) => ({
+            ...data,
+            storyline_done: checked,
+            status: checked ? liftStatus(data.status, 'pembuatan_draft') : data.status,
+        }));
+    };
+
+    const handleDriveUploadedChange = (checked) => {
+        form.setData((data) => ({
+            ...data,
+            drive_uploaded: checked,
+            status: checked ? liftStatus(data.status, 'menunggu_draft_ok') : data.status,
+        }));
+    };
+
+    const handleApprovedAtChange = (value) => {
+        applyStatusFromField('approved_at', value, 'menunggu_posting');
+    };
+
+    const handlePostedAtChange = (value) => {
+        form.setData((data) => ({
+            ...data,
+            posted_at: value,
+            insight_due_at: value && !data.insight_due_at ? addDaysISODate(value, 7) : data.insight_due_at,
+            status: value ? liftStatus(data.status, 'menunggu_insight') : data.status,
+        }));
+    };
+
+    const handleInsightSentChange = (value) => {
+        form.setData((data) => ({
+            ...data,
+            insight_sent_at: value,
+            payment_due_date: value && !data.payment_due_date ? addDaysISODate(value, 14) : data.payment_due_date,
+            status: value ? liftStatus(data.status, 'menunggu_payment') : data.status,
+        }));
+    };
+
+    const handlePaymentStatusChange = (value) => {
+        form.setData((data) => ({
+            ...data,
+            payment_status: value,
+            payment_received_date: value === 'lunas' && !data.payment_received_date ? getTodayISODate() : data.payment_received_date,
+            status: value === 'lunas' ? 'selesai' : data.status,
+        }));
+    };
+
+    const handlePaymentReceivedChange = (value) => {
+        form.setData((data) => ({
+            ...data,
+            payment_received_date: value,
+            payment_status: value ? 'lunas' : data.payment_status,
+            status: value ? 'selesai' : data.status,
+        }));
+    };
 
     const handleSelfPurchaseChange = (checked) => {
         const next = { self_purchase: checked };
@@ -269,10 +412,10 @@ export default function EndorsementForm({
                         <Input id="deal_date" name="deal_date" onChange={(event) => setData('deal_date', event.target.value)} type="date" value={form.data.deal_date} />
                     </Field>
                     <Field label="Order Produk" htmlFor="product_ordered_at" error={form.errors.product_ordered_at}>
-                        <Input id="product_ordered_at" name="product_ordered_at" onChange={(event) => setData('product_ordered_at', event.target.value)} type="date" value={form.data.product_ordered_at} />
+                        <Input id="product_ordered_at" name="product_ordered_at" onChange={(event) => handleProductOrderedChange(event.target.value)} type="date" value={form.data.product_ordered_at} />
                     </Field>
                     <Field label="Produk Diterima" htmlFor="product_received_at" error={form.errors.product_received_at}>
-                        <Input id="product_received_at" name="product_received_at" onChange={(event) => setData('product_received_at', event.target.value)} type="date" value={form.data.product_received_at} />
+                        <Input id="product_received_at" name="product_received_at" onChange={(event) => handleProductReceivedChange(event.target.value)} type="date" value={form.data.product_received_at} />
                     </Field>
                     <Field label="Deadline Draft" htmlFor="draft_deadline" error={form.errors.draft_deadline}>
                         <Input id="draft_deadline" name="draft_deadline" onChange={(event) => setData('draft_deadline', event.target.value)} type="date" value={form.data.draft_deadline} />
@@ -285,24 +428,24 @@ export default function EndorsementForm({
                 <p className="mt-1 text-sm text-muted-foreground">Centang dan isi tanggal yang membantu memantau progress konten.</p>
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <Checkbox label="Perlu storyline dulu" checked={form.data.storyline_required} name="storyline_required" onChange={(checked) => setData('storyline_required', checked)} />
-                    <Checkbox label="Storyline sudah selesai" checked={form.data.storyline_done} name="storyline_done" onChange={(checked) => setData('storyline_done', checked)} />
-                    <Checkbox label="Draft/revisi sudah di Google Drive" checked={form.data.drive_uploaded} name="drive_uploaded" onChange={(checked) => setData('drive_uploaded', checked)} />
+                    <Checkbox label="Storyline sudah selesai" checked={form.data.storyline_done} name="storyline_done" onChange={handleStorylineDoneChange} />
+                    <Checkbox label="Draft/revisi sudah di Google Drive" checked={form.data.drive_uploaded} name="drive_uploaded" onChange={handleDriveUploadedChange} />
                     <Checkbox label="Brand minta boostcode" checked={form.data.boostcode_required} name="boostcode_required" onChange={(checked) => setData('boostcode_required', checked)} />
 
                     <Field label="Tanggal Approved" htmlFor="approved_at" error={form.errors.approved_at}>
-                        <Input id="approved_at" name="approved_at" onChange={(event) => setData('approved_at', event.target.value)} type="date" value={form.data.approved_at} />
+                        <Input id="approved_at" name="approved_at" onChange={(event) => handleApprovedAtChange(event.target.value)} type="date" value={form.data.approved_at} />
                     </Field>
                     <Field label="Tanggal Posting (Rencana)" htmlFor="posting_date" error={form.errors.posting_date}>
                         <Input id="posting_date" name="posting_date" onChange={(event) => setData('posting_date', event.target.value)} type="date" value={form.data.posting_date} />
                     </Field>
                     <Field label="Tanggal Sudah Posting" htmlFor="posted_at" error={form.errors.posted_at} hint="Opsional. Isi jika konten sudah tayang.">
-                        <Input id="posted_at" name="posted_at" onChange={(event) => setData('posted_at', event.target.value)} type="date" value={form.data.posted_at} />
+                        <Input id="posted_at" name="posted_at" onChange={(event) => handlePostedAtChange(event.target.value)} type="date" value={form.data.posted_at} />
                     </Field>
                     <Field label="Laporan Jatuh Tempo" htmlFor="insight_due_at" error={form.errors.insight_due_at} hint="Isi jika brand memang minta laporan.">
                         <Input id="insight_due_at" name="insight_due_at" onChange={(event) => setData('insight_due_at', event.target.value)} type="date" value={form.data.insight_due_at} />
                     </Field>
                     <Field label="Tanggal Kirim Laporan" htmlFor="insight_sent_at" error={form.errors.insight_sent_at}>
-                        <Input id="insight_sent_at" name="insight_sent_at" onChange={(event) => setData('insight_sent_at', event.target.value)} type="date" value={form.data.insight_sent_at} />
+                        <Input id="insight_sent_at" name="insight_sent_at" onChange={(event) => handleInsightSentChange(event.target.value)} type="date" value={form.data.insight_sent_at} />
                     </Field>
                     <Field
                         label="Durasi Boostcode (hari)"
@@ -326,6 +469,15 @@ export default function EndorsementForm({
             <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
                 <h2 className="text-base font-semibold text-foreground">Keuangan</h2>
                 <p className="mt-1 text-sm text-muted-foreground">Catat fee, reimburse, modal, dan status pembayaran agar ringkasan tetap akurat.</p>
+                <div className="mt-4 grid grid-cols-1 gap-3 rounded-xl bg-muted/30 p-3 sm:grid-cols-3">
+                    <SummaryMetric label="Pendapatan" value={formatCurrency(totalIncome)} />
+                    <SummaryMetric label="Modal" value={formatCurrency(totalCost)} />
+                    <SummaryMetric
+                        label="Estimasi Laba"
+                        value={formatCurrency(netProfit)}
+                        accent={netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}
+                    />
+                </div>
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <Field
                         label="Skema Finansial *"
@@ -389,7 +541,7 @@ export default function EndorsementForm({
                         )}
                     </Field>
                     <Field label="Status Pembayaran *" htmlFor="payment_status" error={form.errors.payment_status}>
-                        <Select id="payment_status" name="payment_status" onChange={(event) => setData('payment_status', event.target.value)} value={form.data.payment_status}>
+                        <Select id="payment_status" name="payment_status" onChange={(event) => handlePaymentStatusChange(event.target.value)} value={form.data.payment_status}>
                             {Object.entries(paymentStatusOptions).map(([key, label]) => (
                                 <option key={key} value={key}>{label}</option>
                             ))}
@@ -399,7 +551,7 @@ export default function EndorsementForm({
                         <Input id="payment_due_date" name="payment_due_date" onChange={(event) => setData('payment_due_date', event.target.value)} type="date" value={form.data.payment_due_date} />
                     </Field>
                     <Field label="Tanggal Payment Masuk" htmlFor="payment_received_date" error={form.errors.payment_received_date}>
-                        <Input id="payment_received_date" name="payment_received_date" onChange={(event) => setData('payment_received_date', event.target.value)} type="date" value={form.data.payment_received_date} />
+                        <Input id="payment_received_date" name="payment_received_date" onChange={(event) => handlePaymentReceivedChange(event.target.value)} type="date" value={form.data.payment_received_date} />
                     </Field>
                     <Field label="Catatan" htmlFor="notes" error={form.errors.notes} className="md:col-span-2 xl:col-span-4">
                         <Textarea id="notes" name="notes" onChange={(event) => setData('notes', event.target.value)} placeholder="Contoh: brief khusus, PIC brand, atau catatan revisi." rows="4" value={form.data.notes} />

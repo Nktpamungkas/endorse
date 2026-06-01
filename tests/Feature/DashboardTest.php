@@ -83,7 +83,7 @@ class DashboardTest extends TestCase
                 ->component('Dashboard')
                 ->where('selectedStatusItems.data.0.brand_name', 'Brand Detail')
                 ->where('selectedStatusItems.data.0.net_profit', 225000)
-        );
+            );
     }
 
     public function test_dashboard_detail_status_items_follow_database_payment_status(): void
@@ -157,6 +157,36 @@ class DashboardTest extends TestCase
                 ->where('selectedStatusItems.total', 1)
                 ->where('selectedStatusItems.data.0.brand_name', 'Brand Alpha')
                 ->where('selectedStatusFilters.status_search', 'Alpha')
+            );
+    }
+
+    public function test_dashboard_exposes_priority_items_for_due_work(): void
+    {
+        $user = $this->signIn();
+
+        Endorsement::create([
+            'user_id' => $user->id,
+            'brand_name' => 'Brand Prioritas',
+            'campaign_name' => 'Campaign Deadline',
+            'platform' => 'tiktok',
+            'content_type' => 'video',
+            'status' => 'pembuatan_draft',
+            'draft_deadline' => now()->subDay()->toDateString(),
+            'financial_mode' => 'na_tanpa_produk',
+            'payment_status' => 'belum_bayar',
+            'self_purchase' => false,
+            'fee_amount' => 250000,
+            'reimburse_amount' => 0,
+            'product_cost' => 0,
+            'other_cost' => 0,
+        ]);
+
+        $this->get('/dashboard')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Dashboard')
+                ->where('priorityItems.0.type', 'draft')
+                ->where('priorityItems.0.brand_name', 'Brand Prioritas')
             );
     }
 

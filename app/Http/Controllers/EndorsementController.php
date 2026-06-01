@@ -78,7 +78,7 @@ class EndorsementController extends Controller
     public function create(): Response
     {
         return Inertia::render('Endorsements/Create', [
-            'endorsement' => $this->serializeFormEndorsement(new Endorsement()),
+            'endorsement' => $this->serializeFormEndorsement(new Endorsement),
             'statusOptions' => Endorsement::STATUS_OPTIONS,
             'platformOptions' => Endorsement::PLATFORM_OPTIONS,
             'contentTypeOptions' => Endorsement::CONTENT_TYPE_OPTIONS,
@@ -257,11 +257,11 @@ class EndorsementController extends Controller
         ]);
 
         $old = $endorsement->status;
-        $updateData = $this->normalizeCompletionPaymentState([
+        $updateData = $this->normalizeWorkflowState([
             'status' => $data['status'],
         ], $endorsement);
         $endorsement->update($updateData);
-        $this->logActivity($endorsement, 'status_change', ['from' => $old, 'to' => $data['status']]);
+        $this->logActivity($endorsement, 'status_change', ['from' => $old, 'to' => $endorsement->status]);
 
         return back()->with('success', 'Status berhasil diupdate.');
     }
@@ -442,20 +442,26 @@ class EndorsementController extends Controller
         foreach ($meta as $key => $value) {
             if ($key === 'changes' && is_array($value)) {
                 foreach ($value as $field => $change) {
-                    $from = $change['from'] === null || $change['from'] === '' ? '-' : (string) $change['from'];
-                    $to = $change['to'] === null || $change['to'] === '' ? '-' : (string) $change['to'];
-                    $lines[] = $field.': '.$from.' -> '.$to;
+                    $from = $this->formatLogValue($field, $change['from'] ?? null);
+                    $to = $this->formatLogValue($field, $change['to'] ?? null);
+                    $lines[] = $this->fieldLabel($field).': '.$from.' -> '.$to;
                 }
 
                 continue;
             }
 
-            $lines[] = $key.': '.(is_array($value) ? json_encode($value) : (string) $value);
+            if ($key === 'from' || $key === 'to') {
+                $lines[] = ($key === 'from' ? 'Dari' : 'Ke').': '.$this->formatLogValue('status', $value);
+
+                continue;
+            }
+
+            $lines[] = $this->fieldLabel($key).': '.$this->formatLogValue($key, $value);
         }
 
         return [
             'id' => $log->id,
-            'action_label' => ucfirst(str_replace('_', ' ', $log->action)),
+            'action_label' => $this->activityLabel($log->action),
             'created_at' => $log->created_at?->toIso8601String(),
             'meta_lines' => $lines,
         ];
@@ -514,22 +520,199 @@ class EndorsementController extends Controller
             $payload['checkout_proof_path'] = $request->file('checkout_proof')->store('checkout-proofs', 'public');
         }
 
-        return $this->normalizeCompletionPaymentState($payload, $endorsement);
+        return $this->normalizeWorkflowState($payload, $endorsement);
     }
 
-    private function normalizeCompletionPaymentState(array $payload, ?Endorsement $endorsement = null): array
+    private function normalizeWorkflowState(array $payload, ?Endorsement $endorsement = null): array
     {
-        if (($payload['status'] ?? null) !== 'selesai') {
+        if (! $this->hasDateValue($payload, 'insight_due_at', $endorsement)) {
+            $postedAt = $this->dateValue($payload, 'posted_at', $endorsement);
+            if ($postedAt) {
+                $payload['insight_due_at'] = $postedAt->copy()->addDays(7)->toDateString();
+            }
+        }
+
+        $currentStatus = (string) ($payload['status'] ?? $endorsement?->status ?? 'deal_masuk');
+        $inferredStatus = $this->inferWorkflowStatus($payload, $endorsement);
+
+        if ($inferredStatus && $this->statusRank($inferredStatus) > $this->statusRank($currentStatus)) {
+            $payload['status'] = $inferredStatus;
+            $currentStatus = $inferredStatus;
+        }
+
+        $paymentStatus = (string) ($payload['payment_status'] ?? $endorsement?->payment_status ?? '');
+        if ($currentStatus === 'selesai' || $paymentStatus === 'lunas' || $this->hasDateValue($payload, 'payment_received_date', $endorsement)) {
+            $payload['status'] = 'selesai';
+            $payload['payment_status'] = 'lunas';
+
+            if (! $this->hasDateValue($payload, 'payment_received_date', $endorsement)) {
+                $payload['payment_received_date'] = now()->toDateString();
+            }
+
             return $payload;
         }
 
-        $payload['payment_status'] = 'lunas';
-
-        if (! ($endorsement?->payment_received_date) && empty($payload['payment_received_date'] ?? null)) {
-            $payload['payment_received_date'] = now()->toDateString();
+        if (($payload['status'] ?? $currentStatus) === 'menunggu_payment'
+            && ! $this->hasDateValue($payload, 'payment_due_date', $endorsement)
+        ) {
+            $anchor = $this->dateValue($payload, 'insight_sent_at', $endorsement)
+                ?? $this->dateValue($payload, 'posted_at', $endorsement)
+                ?? now();
+            $payload['payment_due_date'] = $anchor->copy()->addDays(14)->toDateString();
         }
 
         return $payload;
+    }
+
+    private function inferWorkflowStatus(array $payload, ?Endorsement $endorsement = null): ?string
+    {
+        if ($this->hasDateValue($payload, 'payment_received_date', $endorsement)
+            || (string) ($payload['payment_status'] ?? $endorsement?->payment_status ?? '') === 'lunas'
+        ) {
+            return 'selesai';
+        }
+
+        if ($this->hasDateValue($payload, 'insight_sent_at', $endorsement)) {
+            return 'menunggu_payment';
+        }
+
+        if ($this->hasDateValue($payload, 'posted_at', $endorsement)) {
+            return 'menunggu_insight';
+        }
+
+        if ($this->hasDateValue($payload, 'approved_at', $endorsement)) {
+            return 'menunggu_posting';
+        }
+
+        if ($this->boolValue($payload, 'drive_uploaded', $endorsement)) {
+            return 'menunggu_draft_ok';
+        }
+
+        if ($this->hasDateValue($payload, 'product_received_at', $endorsement)
+            || $this->boolValue($payload, 'storyline_done', $endorsement)
+        ) {
+            return 'pembuatan_draft';
+        }
+
+        if ($this->hasDateValue($payload, 'product_ordered_at', $endorsement)) {
+            return 'pembelian_produk';
+        }
+
+        return null;
+    }
+
+    private function statusRank(string $status): int
+    {
+        $index = array_search($status, array_keys(Endorsement::STATUS_OPTIONS), true);
+
+        return $index === false ? 0 : (int) $index;
+    }
+
+    private function hasDateValue(array $payload, string $field, ?Endorsement $endorsement = null): bool
+    {
+        return (bool) $this->dateValue($payload, $field, $endorsement);
+    }
+
+    private function dateValue(array $payload, string $field, ?Endorsement $endorsement = null): ?Carbon
+    {
+        $value = array_key_exists($field, $payload) ? $payload[$field] : $endorsement?->{$field};
+
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if ($value instanceof Carbon) {
+            return $value->copy();
+        }
+
+        return Carbon::parse($value);
+    }
+
+    private function boolValue(array $payload, string $field, ?Endorsement $endorsement = null): bool
+    {
+        if (array_key_exists($field, $payload)) {
+            return (bool) $payload[$field];
+        }
+
+        return (bool) ($endorsement?->{$field} ?? false);
+    }
+
+    private function activityLabel(string $action): string
+    {
+        return match ($action) {
+            'create' => 'Data dibuat',
+            'update' => 'Data diperbarui',
+            'delete' => 'Data dibatalkan',
+            'status_change' => 'Status diubah',
+            default => ucfirst(str_replace('_', ' ', $action)),
+        };
+    }
+
+    private function fieldLabel(string $field): string
+    {
+        return [
+            'brand_name' => 'Brand',
+            'campaign_name' => 'Campaign',
+            'platform' => 'Platform',
+            'content_type' => 'Jenis konten',
+            'status' => 'Status',
+            'deal_date' => 'Tanggal deal',
+            'product_ordered_at' => 'Order produk',
+            'product_received_at' => 'Produk diterima',
+            'draft_deadline' => 'Deadline draft',
+            'storyline_required' => 'Perlu storyline',
+            'storyline_done' => 'Storyline selesai',
+            'drive_uploaded' => 'Upload Drive',
+            'approved_at' => 'Tanggal approved',
+            'posting_date' => 'Rencana posting',
+            'posted_at' => 'Sudah posting',
+            'insight_due_at' => 'Jatuh tempo laporan',
+            'insight_sent_at' => 'Laporan terkirim',
+            'boostcode_required' => 'Perlu boostcode',
+            'boostcode_duration_days' => 'Durasi boostcode',
+            'self_purchase' => 'Beli produk sendiri',
+            'financial_mode' => 'Skema finansial',
+            'fee_amount' => 'Fee',
+            'reimburse_amount' => 'Reimburse',
+            'product_cost' => 'Modal produk',
+            'other_cost' => 'Biaya lain',
+            'payment_status' => 'Status pembayaran',
+            'payment_due_date' => 'Jatuh tempo payment',
+            'payment_received_date' => 'Payment masuk',
+            'notes' => 'Catatan',
+            'reason' => 'Alasan',
+            'fields_changed' => 'Field berubah',
+        ][$field] ?? ucfirst(str_replace('_', ' ', $field));
+    }
+
+    private function formatLogValue(string $field, mixed $value): string
+    {
+        if ($value === null || $value === '') {
+            return '-';
+        }
+
+        if (is_array($value)) {
+            return implode(', ', array_map(fn ($item) => (string) $item, $value));
+        }
+
+        if (is_bool($value)) {
+            return $value ? 'Ya' : 'Tidak';
+        }
+
+        if ($value instanceof Carbon) {
+            return $value->format('Y-m-d');
+        }
+
+        $stringValue = (string) $value;
+
+        return match ($field) {
+            'status' => Endorsement::STATUS_OPTIONS[$stringValue] ?? $stringValue,
+            'platform' => Endorsement::PLATFORM_OPTIONS[$stringValue] ?? $stringValue,
+            'content_type' => Endorsement::CONTENT_TYPE_OPTIONS[$stringValue] ?? $stringValue,
+            'financial_mode' => Endorsement::FINANCIAL_MODE_OPTIONS[$stringValue] ?? $stringValue,
+            'payment_status' => Endorsement::PAYMENT_STATUS_OPTIONS[$stringValue] ?? $stringValue,
+            default => $stringValue,
+        };
     }
 
     private function logActivity(Endorsement $endorsement, string $action, array $meta = []): void
@@ -550,6 +733,7 @@ class EndorsementController extends Controller
 
         if ($ownerId === null) {
             $endorsement->update(['user_id' => $currentId]);
+
             return;
         }
 

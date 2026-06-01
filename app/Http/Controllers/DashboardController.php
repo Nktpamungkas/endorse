@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Endorsement;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,6 +14,7 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request): Response
     {
+        $userId = Auth::id();
         $selectedStatus = $request->query('status_view', 'deal_masuk');
         if (! array_key_exists($selectedStatus, Endorsement::STATUS_OPTIONS)) {
             $selectedStatus = 'deal_masuk';
@@ -22,22 +23,22 @@ class DashboardController extends Controller
         $statusPerPage = max(10, min((int) $request->integer('status_per_page', 10), 100));
 
         $statusCounts = Endorsement::query()
-            ->where('user_id', Auth::id())
+            ->where('user_id', $userId)
             ->select('status', DB::raw('COUNT(*) as total'))
             ->groupBy('status')
             ->pluck('total', 'status');
 
-        $totalIncome = (float) Endorsement::where('user_id', Auth::id())->sum(DB::raw('fee_amount + reimburse_amount'));
-        $totalCost = (float) Endorsement::where('user_id', Auth::id())->sum(DB::raw('product_cost + other_cost'));
-        $receivedNetProfit = (float) Endorsement::where('user_id', Auth::id())
+        $totalIncome = (float) Endorsement::where('user_id', $userId)->sum(DB::raw('fee_amount + reimburse_amount'));
+        $totalCost = (float) Endorsement::where('user_id', $userId)->sum(DB::raw('product_cost + other_cost'));
+        $receivedNetProfit = (float) Endorsement::where('user_id', $userId)
             ->where('status', 'selesai')
             ->sum(DB::raw('(fee_amount + reimburse_amount) - (product_cost + other_cost)'));
         $waitingPaymentItemsQuery = Endorsement::query()
-            ->where('user_id', Auth::id())
+            ->where('user_id', $userId)
             ->where('status', 'menunggu_payment')
             ->where('payment_status', '!=', 'lunas')
             ->whereNull('payment_received_date')
-            ->orderByRaw("CASE WHEN payment_due_date IS NULL THEN 1 ELSE 0 END, payment_due_date ASC, updated_at DESC");
+            ->orderByRaw('CASE WHEN payment_due_date IS NULL THEN 1 ELSE 0 END, payment_due_date ASC, updated_at DESC');
 
         $waitingPayment = (int) (clone $waitingPaymentItemsQuery)->count();
         $waitingPaymentItems = (clone $waitingPaymentItemsQuery)
@@ -46,7 +47,7 @@ class DashboardController extends Controller
             ->map(fn (Endorsement $endorsement) => $this->serializeDashboardItem($endorsement));
 
         $selectedStatusItemsQuery = Endorsement::query()
-            ->where('user_id', Auth::id())
+            ->where('user_id', $userId)
             ->where('status', $selectedStatus)
             ->orderByDesc('updated_at');
 
@@ -63,7 +64,7 @@ class DashboardController extends Controller
             ->through(fn (Endorsement $endorsement) => $this->serializeDashboardItem($endorsement));
 
         $rawMonthlyStats = Endorsement::query()
-            ->where('user_id', Auth::id())
+            ->where('user_id', $userId)
             ->selectRaw("FORMAT(created_at, 'yyyy-MM-01') as month_key")
             ->selectRaw('SUM(fee_amount + reimburse_amount) as income')
             ->selectRaw('SUM(product_cost + other_cost) as cost')
@@ -91,6 +92,7 @@ class DashboardController extends Controller
             'receivedNetProfit' => $receivedNetProfit,
             'waitingPayment' => $waitingPayment,
             'waitingPaymentItems' => $waitingPaymentItems,
+            'priorityItems' => $this->buildPriorityItems($userId),
             'selectedStatus' => $selectedStatus,
             'selectedStatusItems' => $selectedStatusItems,
             'selectedStatusFilters' => [
@@ -120,6 +122,136 @@ class DashboardController extends Controller
             'total_income' => (float) $endorsement->total_income,
             'total_cost' => (float) $endorsement->total_cost,
             'net_profit' => (float) $endorsement->net_profit,
+        ];
+    }
+
+    private function buildPriorityItems(int $userId): array
+    {
+        $today = Carbon::today();
+        $soon = $today->copy()->addDays(7);
+        $items = collect();
+
+        $items = $items->merge(
+            Endorsement::query()
+                ->where('user_id', $userId)
+                ->whereIn('status', ['pembuatan_draft', 'menunggu_draft_ok', 'revisi'])
+                ->whereNotNull('draft_deadline')
+                ->whereDate('draft_deadline', '<=', $today)
+                ->orderBy('draft_deadline')
+                ->limit(5)
+                ->get()
+                ->map(fn (Endorsement $endorsement) => $this->serializePriorityItem(
+                    $endorsement,
+                    'draft',
+                    'Deadline draft',
+                    'Draft atau revisi perlu diselesaikan',
+                    $endorsement->draft_deadline,
+                ))
+        );
+
+        $items = $items->merge(
+            Endorsement::query()
+                ->where('user_id', $userId)
+                ->where('status', '!=', 'selesai')
+                ->whereNull('posted_at')
+                ->whereNotNull('posting_date')
+                ->whereDate('posting_date', '<=', $today)
+                ->orderBy('posting_date')
+                ->limit(5)
+                ->get()
+                ->map(fn (Endorsement $endorsement) => $this->serializePriorityItem(
+                    $endorsement,
+                    'posting',
+                    'Jadwal posting',
+                    'Konten perlu diposting atau dikonfirmasi tayang',
+                    $endorsement->posting_date,
+                ))
+        );
+
+        $items = $items->merge(
+            Endorsement::query()
+                ->where('user_id', $userId)
+                ->whereNull('insight_sent_at')
+                ->whereNotNull('insight_due_at')
+                ->whereDate('insight_due_at', '<=', $today)
+                ->orderBy('insight_due_at')
+                ->limit(5)
+                ->get()
+                ->map(fn (Endorsement $endorsement) => $this->serializePriorityItem(
+                    $endorsement,
+                    'insight',
+                    'Laporan insight',
+                    'Insight sudah waktunya dikirim ke brand',
+                    $endorsement->insight_due_at,
+                ))
+        );
+
+        $items = $items->merge(
+            Endorsement::query()
+                ->where('user_id', $userId)
+                ->where('payment_status', '!=', 'lunas')
+                ->whereNull('payment_received_date')
+                ->whereNotNull('payment_due_date')
+                ->whereDate('payment_due_date', '<=', $today)
+                ->orderBy('payment_due_date')
+                ->limit(5)
+                ->get()
+                ->map(fn (Endorsement $endorsement) => $this->serializePriorityItem(
+                    $endorsement,
+                    'payment',
+                    'Tagih payment',
+                    'Pembayaran perlu difollow up',
+                    $endorsement->payment_due_date,
+                    (float) $endorsement->total_income,
+                ))
+        );
+
+        $boostcodeItems = Endorsement::query()
+            ->where('user_id', $userId)
+            ->where('boostcode_required', true)
+            ->whereNotNull('posted_at')
+            ->whereNotNull('boostcode_duration_days')
+            ->orderBy('posted_at')
+            ->limit(50)
+            ->get()
+            ->filter(fn (Endorsement $endorsement) => $endorsement->boostcode_deadline
+                && $endorsement->boostcode_deadline->betweenIncluded($today, $soon))
+            ->map(fn (Endorsement $endorsement) => $this->serializePriorityItem(
+                $endorsement,
+                'boostcode',
+                'Boostcode hampir selesai',
+                'Masa boostcode akan habis dalam 7 hari',
+                $endorsement->boostcode_deadline,
+            ));
+
+        return $items
+            ->merge($boostcodeItems)
+            ->sortBy(fn (array $item) => $item['due_at'] ?? '9999-12-31')
+            ->take(12)
+            ->values()
+            ->all();
+    }
+
+    private function serializePriorityItem(
+        Endorsement $endorsement,
+        string $type,
+        string $label,
+        string $title,
+        ?Carbon $dueAt,
+        ?float $amount = null,
+    ): array {
+        return [
+            'id' => $endorsement->id,
+            'type' => $type,
+            'label' => $label,
+            'title' => $title,
+            'brand_name' => $endorsement->brand_name,
+            'campaign_name' => $endorsement->campaign_name,
+            'status' => $endorsement->status,
+            'status_label' => Endorsement::STATUS_OPTIONS[$endorsement->status] ?? $endorsement->status,
+            'due_at' => optional($dueAt)->format('Y-m-d'),
+            'amount' => $amount,
+            'url' => route('endorsements.show', $endorsement),
         ];
     }
 }
