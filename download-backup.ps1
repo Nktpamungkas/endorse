@@ -5,7 +5,7 @@
 # ============================================================
 
 $VPS_USER    = "naleubuntu"
-$VPS_HOST    = "nalehanan"
+$VPS_HOST    = "103.197.189.221"
 $VPS_PATH    = "/var/www/nalehanan/endorse/storage/app/backups/database"
 $LOCAL_DIR   = "$PSScriptRoot\storage\backups-from-vps"
 
