@@ -97,9 +97,13 @@ diakses publik lewat domain `nale-hanan.my.id` menggunakan FrankenPHP + Cloudfla
 - **Solusi:** Pindahkan STB ke WiFi yang sama dengan laptop.
 
 ```bash
+nmcli device wifi list
 nmcli device wifi connect "NamaWifi" password "PASSWORD"
-ip addr show wlan0
+ip addr show wlan0   # cek IP baru
 ```
+
+> Catatan: pastikan Windows Firewall / Hyper-V (WSL) tidak ikut memblokir, tapi
+> inti masalahnya adalah isolation router.
 
 #### 2. PHP 8.x tidak tersedia di apt (arm64)
 - **Gejala:** Ubuntu focal hanya menyediakan PHP 7.4. PPA ondrej/php tidak ada paket arm64.
@@ -118,6 +122,7 @@ ip addr show wlan0
 #### A. Tools dasar
 ```bash
 rm -f /etc/apt/sources.list.d/php.list
+rm -f /etc/apt/sources.list.d/ondrej-ubuntu-php-focal.list
 apt update && apt install -y git unzip curl
 ```
 
@@ -125,6 +130,7 @@ apt update && apt install -y git unzip curl
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
 apt install -y nodejs
+node -v   # v22.x
 ```
 
 #### C. FrankenPHP
@@ -132,12 +138,20 @@ apt install -y nodejs
 curl -L https://github.com/dunglas/frankenphp/releases/latest/download/frankenphp-linux-aarch64 \
   -o /usr/local/bin/frankenphp
 chmod +x /usr/local/bin/frankenphp
+frankenphp version
+```
+
+Cek ekstensi (harus ada `pdo_sqlite`, `mbstring`, dll):
+```bash
+echo '<?php print_r(get_loaded_extensions());' > /tmp/cek.php
+frankenphp php-cli /tmp/cek.php
 ```
 
 #### D. Wrapper `php`
 ```bash
 cat > /usr/local/bin/php <<'EOF'
 #!/bin/sh
+# Buang opsi PHP (-d key=val, dll), jalankan script-nya saja via FrankenPHP
 while [ $# -gt 0 ]; do
   case "$1" in
     -d) shift 2 ;;
@@ -161,6 +175,7 @@ hash -r
 curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
 frankenphp php-cli /tmp/composer-setup.php
 mv composer.phar /usr/local/bin/composer
+composer --version
 ```
 
 #### F. Clone & install
@@ -169,6 +184,7 @@ cd /opt
 git clone https://github.com/Nktpamungkas/endorse.git
 cd endorse
 
+# install dependency TANPA menjalankan script (hindari bug -d flag)
 composer install --no-scripts
 php artisan package:discover --ansi
 ```
@@ -195,7 +211,8 @@ npm run build
 #### I. Test
 ```bash
 frankenphp php-server --root /opt/endorse/public --listen :8000 &
-curl -I http://localhost:8000
+curl -I http://localhost:8000   # harus 200 OK
+# dari browser dalam jaringan: http://192.168.1.12:8000
 ```
 
 ### Cloudflare Tunnel (Akses Publik)
@@ -206,9 +223,11 @@ cd /tmp
 curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64.deb \
   -o cloudflared.deb
 dpkg -i cloudflared.deb
+cloudflared --version
 
-# Login & buat tunnel
+# Login & buat tunnel (butuh domain sudah aktif di Cloudflare)
 cloudflared tunnel login
+# buka URL yang muncul di browser → pilih zona nale-hanan.my.id → Authorize
 cloudflared tunnel create endorse
 
 # Config
@@ -224,7 +243,7 @@ ingress:
   - service: http_status:404
 EOF
 
-# Routing DNS
+# Routing DNS (kalau record lama ada, hapus dulu di dashboard, atau pakai --overwrite-dns)
 cloudflared tunnel route dns endorse nale-hanan.my.id
 ```
 
@@ -311,6 +330,7 @@ cp /opt/endorse/database/database.sqlite /root/backup-$(date +%F).sqlite
 - **Selalu `composer install --no-scripts`** lalu `php artisan package:discover` manual.
 - **Database SQLite** ada di `/opt/endorse/database/database.sqlite`. Backup file ini = backup seluruh data.
 - Konsumsi RAM idle: cloudflared ~24MB, FrankenPHP ~58MB.
+- Kalau mau pindah/tambah domain, edit `ingress` di `/etc/cloudflared/config.yml` lalu `cloudflared tunnel route dns endorse <domain>` dan `systemctl restart cloudflared`.
 
 ---
 

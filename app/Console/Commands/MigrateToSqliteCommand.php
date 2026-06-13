@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Schema;
 class MigrateToSqliteCommand extends Command
 {
     protected $signature = 'endorse:migrate-to-sqlite
-                            {--fresh : Hapus SQLite file yang sudah ada dan mulai dari awal}';
+                            {--fresh : Hapus SQLite file yang sudah ada dan mulai dari awal}
+                            {--yes : Skip semua konfirmasi}';
 
     protected $description = 'Migrasi semua data dari SQL Server ke SQLite';
 
@@ -27,17 +28,6 @@ class MigrateToSqliteCommand extends Command
         'backup_logs',
     ];
 
-    // Tabel yang sengaja di-skip (tidak perlu dimigrasikan)
-    private array $skipTables = [
-        'migrations',   // otomatis diisi ulang saat migrate
-        'sessions',     // session lama tidak relevan
-        'cache',        // cache lama tidak relevan
-        'cache_locks',
-        'jobs',
-        'job_batches',
-        'failed_jobs',
-        'password_reset_tokens',
-    ];
 
     public function handle(): int
     {
@@ -63,7 +53,7 @@ class MigrateToSqliteCommand extends Command
                 unlink($sqlitePath);
                 $this->warn('SQLite file lama dihapus.');
             } else {
-                if (! $this->confirm("File SQLite sudah ada di $sqlitePath. Lanjutkan? (data lama akan ditimpa)")) {
+                if (! $this->option('yes') && ! $this->confirm("File SQLite sudah ada di $sqlitePath. Lanjutkan? (data lama akan ditimpa)")) {
                     $this->line('Dibatalkan.');
 
                     return self::SUCCESS;
