@@ -67,13 +67,19 @@ class DashboardController extends Controller
             ->withQueryString()
             ->through(fn (Endorsement $endorsement) => $this->serializeDashboardItem($endorsement));
 
+        $monthFormat = match (config('database.default')) {
+            'sqlsrv' => "FORMAT(created_at, 'yyyy-MM-01')",
+            'mysql', 'mariadb' => "DATE_FORMAT(created_at, '%Y-%m-01')",
+            default => "strftime('%Y-%m-01', created_at)",
+        };
+
         $rawMonthlyStats = Endorsement::query()
             ->where('user_id', $userId)
-            ->selectRaw("FORMAT(created_at, 'yyyy-MM-01') as month_key")
+            ->selectRaw("$monthFormat as month_key")
             ->selectRaw('SUM(fee_amount + reimburse_amount) as income')
             ->selectRaw('SUM(product_cost + other_cost) as cost')
-            ->groupByRaw("FORMAT(created_at, 'yyyy-MM-01')")
-            ->orderByRaw("FORMAT(created_at, 'yyyy-MM-01')")
+            ->groupByRaw($monthFormat)
+            ->orderByRaw($monthFormat)
             ->get()
             ->keyBy('month_key');
 
