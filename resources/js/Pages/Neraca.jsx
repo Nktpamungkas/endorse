@@ -118,64 +118,55 @@ export default function Neraca({ rows, summary, filters, saldoPembuka }) {
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
+                            <table className="w-full border-collapse text-sm">
                                 <thead>
-                                    <tr className="border-b border-border bg-muted/30 text-xs uppercase tracking-wide text-muted-foreground">
-                                        <th className="px-4 py-3 text-left font-semibold">Tanggal</th>
-                                        <th className="px-4 py-3 text-left font-semibold">Keterangan</th>
-                                        <th className="px-4 py-3 text-right font-semibold">Debit</th>
-                                        <th className="px-4 py-3 text-right font-semibold">Kredit</th>
-                                        <th className="px-4 py-3 text-right font-semibold">Saldo</th>
+                                    <tr>
+                                        <th className="border border-border px-3 py-2 text-left">Tanggal</th>
+                                        <th className="border border-border px-3 py-2 text-left">Keterangan</th>
+                                        <th className="border border-border px-3 py-2 text-right">Debit</th>
+                                        <th className="border border-border px-3 py-2 text-right">Kredit</th>
+                                        <th className="border border-border px-3 py-2 text-right">Saldo</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-border">
+                                <tbody>
                                     {saldoPembuka !== 0 && (
-                                        <tr className="bg-muted/20 italic">
-                                            <td className="whitespace-nowrap px-4 py-3 text-muted-foreground" colSpan={2}>
+                                        <tr>
+                                            <td className="border border-border px-3 py-2 italic text-muted-foreground" colSpan={2}>
                                                 Saldo awal periode
                                             </td>
-                                            <td className="px-4 py-3" />
-                                            <td className="px-4 py-3" />
-                                            <td className={`whitespace-nowrap px-4 py-3 text-right font-semibold ${saldoPembuka >= 0 ? 'text-foreground' : 'text-rose-600'}`}>
+                                            <td className="border border-border px-3 py-2" />
+                                            <td className="border border-border px-3 py-2" />
+                                            <td className="border border-border px-3 py-2 text-right">
                                                 {formatCurrency(saldoPembuka)}
                                             </td>
                                         </tr>
                                     )}
                                     {rows.map((row, idx) => (
-                                        <tr key={`${row.tipe}-${row.ref_id}-${idx}`} className="hover:bg-muted/20">
-                                            <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
+                                        <tr key={`${row.tipe}-${row.ref_id}-${idx}`}>
+                                            <td className="border border-border px-3 py-2 whitespace-nowrap">
                                                 {formatDate(row.tanggal, { day: '2-digit', month: 'long', year: 'numeric' })}
                                             </td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <span
-                                                        className={`inline-block rounded-full border px-2 py-0.5 text-xs font-semibold ${TIPE_BADGE[row.tipe]}`}
-                                                    >
-                                                        {TIPE_LABEL[row.tipe]}
-                                                    </span>
-                                                    <span className="text-foreground">{row.keterangan}</span>
-                                                </div>
+                                            <td className="border border-border px-3 py-2">
+                                                [{TIPE_LABEL[row.tipe]}] {row.keterangan}
                                             </td>
-                                            <td className="whitespace-nowrap px-4 py-3 text-right font-medium text-emerald-600">
-                                                {row.debit > 0 ? formatCurrency(row.debit) : <span className="text-muted-foreground">—</span>}
+                                            <td className="border border-border px-3 py-2 text-right whitespace-nowrap">
+                                                {row.debit > 0 ? formatCurrency(row.debit) : ''}
                                             </td>
-                                            <td className="whitespace-nowrap px-4 py-3 text-right font-medium text-rose-600">
-                                                {row.kredit > 0 ? formatCurrency(row.kredit) : <span className="text-muted-foreground">—</span>}
+                                            <td className="border border-border px-3 py-2 text-right whitespace-nowrap">
+                                                {row.kredit > 0 ? formatCurrency(row.kredit) : ''}
                                             </td>
-                                            <td className={`whitespace-nowrap px-4 py-3 text-right font-semibold ${row.saldo >= 0 ? 'text-foreground' : 'text-rose-600'}`}>
+                                            <td className="border border-border px-3 py-2 text-right whitespace-nowrap">
                                                 {formatCurrency(row.saldo)}
                                             </td>
                                         </tr>
                                     ))}
                                 </tbody>
                                 <tfoot>
-                                    <tr className="border-t-2 border-border bg-muted/30 text-sm font-semibold">
-                                        <td className="px-4 py-3 text-muted-foreground" colSpan={2}>Total</td>
-                                        <td className="px-4 py-3 text-right text-emerald-600">{formatCurrency(summary.total_debit)}</td>
-                                        <td className="px-4 py-3 text-right text-rose-600">{formatCurrency(summary.total_kredit)}</td>
-                                        <td className={`px-4 py-3 text-right ${summary.saldo_akhir >= 0 ? 'text-foreground' : 'text-rose-600'}`}>
-                                            {formatCurrency(summary.saldo_akhir)}
-                                        </td>
+                                    <tr>
+                                        <td className="border border-border px-3 py-2 font-semibold" colSpan={2}>Total</td>
+                                        <td className="border border-border px-3 py-2 text-right font-semibold whitespace-nowrap">{formatCurrency(summary.total_debit)}</td>
+                                        <td className="border border-border px-3 py-2 text-right font-semibold whitespace-nowrap">{formatCurrency(summary.total_kredit)}</td>
+                                        <td className="border border-border px-3 py-2 text-right font-semibold whitespace-nowrap">{formatCurrency(summary.saldo_akhir)}</td>
                                     </tr>
                                 </tfoot>
                             </table>
