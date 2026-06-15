@@ -149,10 +149,10 @@ export default function Neraca({ rows, summary, filters, saldoPembuka }) {
                                             <td className="border border-border px-3 py-2">
                                                 [{TIPE_LABEL[row.tipe]}] {row.keterangan}
                                             </td>
-                                            <td className="border border-border px-3 py-2 text-right whitespace-nowrap">
+                                            <td className="border border-border px-3 py-2 text-right whitespace-nowrap text-emerald-600">
                                                 {row.debit > 0 ? formatCurrency(row.debit) : ''}
                                             </td>
-                                            <td className="border border-border px-3 py-2 text-right whitespace-nowrap">
+                                            <td className="border border-border px-3 py-2 text-right whitespace-nowrap text-rose-600">
                                                 {row.kredit > 0 ? formatCurrency(row.kredit) : ''}
                                             </td>
                                             <td className="border border-border px-3 py-2 text-right whitespace-nowrap">
