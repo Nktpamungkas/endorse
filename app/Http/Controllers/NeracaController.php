@@ -33,7 +33,7 @@ class NeracaController extends Controller
             });
         $this->applyPeriodFilter($endorsementQuery, 'created_at', $bulan, $tahun);
 
-        $endorsements = $endorsementQuery->get()->map(fn (Endorsement $e) => [
+        $endorsements = $endorsementQuery->get()->toBase()->map(fn (Endorsement $e) => [
             'tanggal' => Carbon::parse($e->created_at)->format('Y-m-d'),
             'keterangan' => trim($e->brand_name.($e->campaign_name ? ' — '.$e->campaign_name : '')),
             'tipe' => 'endorsement',
@@ -45,7 +45,7 @@ class NeracaController extends Controller
         $pemasukanQuery = Pemasukan::query()->where('user_id', $userId);
         $this->applyPeriodFilter($pemasukanQuery, 'tanggal', $bulan, $tahun);
 
-        $pemasukan = $pemasukanQuery->get()->map(fn (Pemasukan $p) => [
+        $pemasukan = $pemasukanQuery->get()->toBase()->map(fn (Pemasukan $p) => [
             'tanggal' => optional($p->tanggal)->format('Y-m-d') ?? Carbon::parse($p->created_at)->format('Y-m-d'),
             'keterangan' => $p->deskripsi,
             'tipe' => 'pemasukan',
@@ -57,7 +57,7 @@ class NeracaController extends Controller
         $pengeluaranQuery = Pengeluaran::query()->where('user_id', $userId);
         $this->applyPeriodFilter($pengeluaranQuery, 'tanggal', $bulan, $tahun);
 
-        $pengeluaran = $pengeluaranQuery->get()->map(fn (Pengeluaran $p) => [
+        $pengeluaran = $pengeluaranQuery->get()->toBase()->map(fn (Pengeluaran $p) => [
             'tanggal' => optional($p->tanggal)->format('Y-m-d') ?? Carbon::parse($p->created_at)->format('Y-m-d'),
             'keterangan' => $p->deskripsi,
             'tipe' => 'pengeluaran',
