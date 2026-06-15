@@ -34,13 +34,13 @@ const TIPE_LABEL = {
 
 function buildYearOptions() {
     const current = new Date().getFullYear();
-    return Array.from({ length: 5 }, (_, i) => current - i);
+    return [{ value: 0, label: 'Semua Tahun' }, ...Array.from({ length: 5 }, (_, i) => ({ value: current - i, label: String(current - i) }))];
 }
 
 export default function Neraca({ rows, summary, filters, saldoPembuka }) {
     const filterForm = useForm({
         bulan: String(filters.bulan ?? 0),
-        tahun: String(filters.tahun ?? new Date().getFullYear()),
+        tahun: String(filters.tahun ?? 0),
     });
 
     const applyFilter = (key, value) => {
@@ -79,8 +79,8 @@ export default function Neraca({ rows, summary, filters, saldoPembuka }) {
                                 value={filterForm.data.tahun}
                                 onChange={(e) => applyFilter('tahun', e.target.value)}
                             >
-                                {buildYearOptions().map((y) => (
-                                    <option key={y} value={y}>{y}</option>
+                                {buildYearOptions().map((opt) => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
                                 ))}
                             </select>
                         </div>

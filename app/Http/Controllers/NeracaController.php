@@ -18,75 +18,58 @@ class NeracaController extends Controller
     {
         $userId = Auth::id();
         $bulan = $request->integer('bulan', 0);
-        $tahun = $request->integer('tahun', Carbon::now()->year);
+        $tahun = $request->integer('tahun', 0); // 0 = semua tahun
 
-        $startDate = $bulan > 0
-            ? Carbon::create($tahun, $bulan, 1)->startOfMonth()
-            : Carbon::create($tahun, 1, 1)->startOfYear();
+        // Hitung saldo pembuka (transaksi sebelum periode filter)
+        $saldoPembuka = $this->hitungSaldoPembuka($userId, $bulan, $tahun);
 
-        // Saldo pembuka: semua transaksi sebelum periode filter
-        $saldoPembuka = 0.0;
-        $saldoPembuka += (float) Endorsement::query()
+        // Query endorsement — hanya yang sudah dibayar (sama dengan Saldo)
+        $endorsementQuery = Endorsement::query()
             ->where('user_id', $userId)
-            ->where('created_at', '<', $startDate)
-            ->sum(DB::raw('(fee_amount + reimburse_amount) - (product_cost + other_cost)'));
-        $saldoPembuka += (float) Pemasukan::query()
-            ->where('user_id', $userId)
-            ->where('tanggal', '<', $startDate)
-            ->sum('jumlah');
-        $saldoPembuka -= (float) Pengeluaran::query()
-            ->where('user_id', $userId)
-            ->where('tanggal', '<', $startDate)
-            ->sum('jumlah');
+            ->where(function ($q) {
+                $q->where('payment_status', 'lunas')
+                    ->orWhere('status', 'selesai')
+                    ->orWhereNotNull('payment_received_date');
+            });
+        $this->applyPeriodFilter($endorsementQuery, 'created_at', $bulan, $tahun);
 
-        // Transaksi dalam periode
-        $endorsements = Endorsement::query()
-            ->where('user_id', $userId)
-            ->when($bulan > 0, fn ($q) => $q->whereYear('created_at', $tahun)->whereMonth('created_at', $bulan))
-            ->when($bulan === 0, fn ($q) => $q->whereYear('created_at', $tahun))
-            ->get()
-            ->map(fn (Endorsement $e) => [
-                'tanggal' => Carbon::parse($e->created_at)->format('Y-m-d'),
-                'keterangan' => trim($e->brand_name.($e->campaign_name ? ' — '.$e->campaign_name : '')),
-                'tipe' => 'endorsement',
-                'debit' => (float) ($e->fee_amount + $e->reimburse_amount),
-                'kredit' => (float) ($e->product_cost + $e->other_cost),
-                'ref_id' => $e->id,
-            ]);
+        $endorsements = $endorsementQuery->get()->map(fn (Endorsement $e) => [
+            'tanggal' => Carbon::parse($e->created_at)->format('Y-m-d'),
+            'keterangan' => trim($e->brand_name.($e->campaign_name ? ' — '.$e->campaign_name : '')),
+            'tipe' => 'endorsement',
+            'debit' => (float) ($e->fee_amount + $e->reimburse_amount),
+            'kredit' => (float) ($e->product_cost + $e->other_cost),
+            'ref_id' => $e->id,
+        ]);
 
-        $pemasukan = Pemasukan::query()
-            ->where('user_id', $userId)
-            ->when($bulan > 0, fn ($q) => $q->whereYear('tanggal', $tahun)->whereMonth('tanggal', $bulan))
-            ->when($bulan === 0, fn ($q) => $q->whereYear('tanggal', $tahun))
-            ->get()
-            ->map(fn (Pemasukan $p) => [
-                'tanggal' => optional($p->tanggal)->format('Y-m-d') ?? Carbon::parse($p->created_at)->format('Y-m-d'),
-                'keterangan' => $p->deskripsi,
-                'tipe' => 'pemasukan',
-                'debit' => (float) $p->jumlah,
-                'kredit' => 0.0,
-                'ref_id' => $p->id,
-            ]);
+        $pemasukanQuery = Pemasukan::query()->where('user_id', $userId);
+        $this->applyPeriodFilter($pemasukanQuery, 'tanggal', $bulan, $tahun);
 
-        $pengeluaran = Pengeluaran::query()
-            ->where('user_id', $userId)
-            ->when($bulan > 0, fn ($q) => $q->whereYear('tanggal', $tahun)->whereMonth('tanggal', $bulan))
-            ->when($bulan === 0, fn ($q) => $q->whereYear('tanggal', $tahun))
-            ->get()
-            ->map(fn (Pengeluaran $p) => [
-                'tanggal' => optional($p->tanggal)->format('Y-m-d') ?? Carbon::parse($p->created_at)->format('Y-m-d'),
-                'keterangan' => $p->deskripsi,
-                'tipe' => 'pengeluaran',
-                'debit' => 0.0,
-                'kredit' => (float) $p->jumlah,
-                'ref_id' => $p->id,
-            ]);
+        $pemasukan = $pemasukanQuery->get()->map(fn (Pemasukan $p) => [
+            'tanggal' => optional($p->tanggal)->format('Y-m-d') ?? Carbon::parse($p->created_at)->format('Y-m-d'),
+            'keterangan' => $p->deskripsi,
+            'tipe' => 'pemasukan',
+            'debit' => (float) $p->jumlah,
+            'kredit' => 0.0,
+            'ref_id' => $p->id,
+        ]);
+
+        $pengeluaranQuery = Pengeluaran::query()->where('user_id', $userId);
+        $this->applyPeriodFilter($pengeluaranQuery, 'tanggal', $bulan, $tahun);
+
+        $pengeluaran = $pengeluaranQuery->get()->map(fn (Pengeluaran $p) => [
+            'tanggal' => optional($p->tanggal)->format('Y-m-d') ?? Carbon::parse($p->created_at)->format('Y-m-d'),
+            'keterangan' => $p->deskripsi,
+            'tipe' => 'pengeluaran',
+            'debit' => 0.0,
+            'kredit' => (float) $p->jumlah,
+            'ref_id' => $p->id,
+        ]);
 
         $rows = $endorsements->merge($pemasukan)->merge($pengeluaran)
             ->sortBy('tanggal')
             ->values();
 
-        // Hitung running saldo mulai dari saldo pembuka
         $saldo = round($saldoPembuka, 2);
         $rows = $rows->map(function (array $row) use (&$saldo): array {
             $saldo += $row['debit'] - $row['kredit'];
@@ -111,5 +94,50 @@ class NeracaController extends Controller
                 'tahun' => $tahun,
             ],
         ]);
+    }
+
+    private function hitungSaldoPembuka(int $userId, int $bulan, int $tahun): float
+    {
+        if ($tahun === 0) {
+            return 0.0; // Semua tahun = tidak ada saldo pembuka
+        }
+
+        $startDate = $bulan > 0
+            ? Carbon::create($tahun, $bulan, 1)->startOfMonth()
+            : Carbon::create($tahun, 1, 1)->startOfYear();
+
+        $saldo = 0.0;
+        $saldo += (float) Endorsement::query()
+            ->where('user_id', $userId)
+            ->where(function ($q) {
+                $q->where('payment_status', 'lunas')
+                    ->orWhere('status', 'selesai')
+                    ->orWhereNotNull('payment_received_date');
+            })
+            ->where('created_at', '<', $startDate)
+            ->sum(DB::raw('(fee_amount + reimburse_amount) - (product_cost + other_cost)'));
+        $saldo += (float) Pemasukan::query()
+            ->where('user_id', $userId)
+            ->where('tanggal', '<', $startDate)
+            ->sum('jumlah');
+        $saldo -= (float) Pengeluaran::query()
+            ->where('user_id', $userId)
+            ->where('tanggal', '<', $startDate)
+            ->sum('jumlah');
+
+        return $saldo;
+    }
+
+    private function applyPeriodFilter($query, string $column, int $bulan, int $tahun): void
+    {
+        if ($tahun === 0) {
+            return; // Semua tahun, tidak ada filter
+        }
+
+        if ($bulan > 0) {
+            $query->whereYear($column, $tahun)->whereMonth($column, $bulan);
+        } else {
+            $query->whereYear($column, $tahun);
+        }
     }
 }
