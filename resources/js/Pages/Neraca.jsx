@@ -37,7 +37,7 @@ function buildYearOptions() {
     return Array.from({ length: 5 }, (_, i) => current - i);
 }
 
-export default function Neraca({ rows, summary, filters }) {
+export default function Neraca({ rows, summary, filters, saldoPembuka }) {
     const filterForm = useForm({
         bulan: String(filters.bulan ?? 0),
         tahun: String(filters.tahun ?? new Date().getFullYear()),
@@ -123,6 +123,18 @@ export default function Neraca({ rows, summary, filters }) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
+                                    {saldoPembuka !== 0 && (
+                                        <tr className="bg-muted/20 italic">
+                                            <td className="whitespace-nowrap px-4 py-3 text-muted-foreground" colSpan={2}>
+                                                Saldo awal periode
+                                            </td>
+                                            <td className="px-4 py-3" />
+                                            <td className="px-4 py-3" />
+                                            <td className={`whitespace-nowrap px-4 py-3 text-right font-semibold ${saldoPembuka >= 0 ? 'text-foreground' : 'text-rose-600'}`}>
+                                                {formatCurrency(saldoPembuka)}
+                                            </td>
+                                        </tr>
+                                    )}
                                     {rows.map((row, idx) => (
                                         <tr key={`${row.tipe}-${row.ref_id}-${idx}`} className="hover:bg-muted/20">
                                             <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
