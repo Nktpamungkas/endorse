@@ -4,6 +4,7 @@ import {
     Archive,
     ArrowDownCircle,
     ArrowUpCircle,
+    BookOpen,
     Database,
     KeyRound,
     LayoutDashboard,
@@ -131,6 +132,9 @@ export default function AppLayout({ children }) {
                                 <NavLink href="/saldo" active={current.startsWith('/saldo')} icon={Wallet} onClick={() => setOpen(false)}>
                                     Saldo
                                 </NavLink>
+                                <NavLink href="/neraca" active={current.startsWith('/neraca')} icon={BookOpen} onClick={() => setOpen(false)}>
+                                    Neraca
+                                </NavLink>
                             </div>
                             <div className="space-y-1">
                                 <p className="px-2 text-xs uppercase tracking-[0.12em] text-muted-foreground">Kelola</p>
@@ -194,6 +198,9 @@ export default function AppLayout({ children }) {
                                 </NavLink>
                                 <NavLink href="/saldo" active={current.startsWith('/saldo')} icon={Wallet}>
                                     Saldo
+                                </NavLink>
+                                <NavLink href="/neraca" active={current.startsWith('/neraca')} icon={BookOpen}>
+                                    Neraca
                                 </NavLink>
                             </div>
                             <div className="space-y-1">

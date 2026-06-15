@@ -6,6 +6,7 @@ use App\Http\Controllers\DatabaseBackupController;
 use App\Http\Controllers\EndorsementController;
 use App\Http\Controllers\EndorsementRevisionController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\NeracaController;
 use App\Http\Controllers\PemasukanController;
 use App\Http\Controllers\PengeluaranController;
 use App\Http\Controllers\SaldoController;
@@ -33,6 +34,7 @@ Route::middleware('single.auth')->group(function (): void {
     Route::put('/pengeluaran/{pengeluaran}', [PengeluaranController::class, 'update'])->name('pengeluaran.update');
     Route::delete('/pengeluaran/{pengeluaran}', [PengeluaranController::class, 'destroy'])->name('pengeluaran.destroy');
     Route::get('/saldo', SaldoController::class)->name('saldo.index');
+    Route::get('/neraca', NeracaController::class)->name('neraca.index');
     Route::get('/total-modal', TotalModalController::class)->name('total-modal.index');
     Route::resource('endorsements', EndorsementController::class);
     Route::get('/endorsements-deleted', [EndorsementController::class, 'trashed'])->name('endorsements.trashed');
