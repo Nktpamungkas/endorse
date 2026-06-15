@@ -17,8 +17,8 @@ class NeracaController extends Controller
     public function __invoke(Request $request): Response
     {
         $userId = Auth::id();
-        $bulan = $request->integer('bulan', 0);
-        $tahun = $request->integer('tahun', 0); // 0 = semua tahun
+        $bulan = $request->integer('bulan', Carbon::now()->month);
+        $tahun = $request->integer('tahun', Carbon::now()->year);
 
         // Hitung saldo pembuka (transaksi sebelum periode filter)
         $saldoPembuka = $this->hitungSaldoPembuka($userId, $bulan, $tahun);

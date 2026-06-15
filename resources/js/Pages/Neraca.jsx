@@ -38,14 +38,19 @@ function buildYearOptions() {
 }
 
 export default function Neraca({ rows, summary, filters, saldoPembuka }) {
+    const now = new Date();
     const filterForm = useForm({
-        bulan: String(filters.bulan ?? 0),
-        tahun: String(filters.tahun ?? 0),
+        bulan: String(filters.bulan ?? (now.getMonth() + 1)),
+        tahun: String(filters.tahun ?? now.getFullYear()),
     });
 
     const applyFilter = (key, value) => {
         const next = { ...filterForm.data, [key]: value };
-        filterForm.setData(key, value);
+        // Kalau ganti ke "Semua Tahun", reset bulan juga
+        if (key === 'tahun' && value === '0') {
+            next.bulan = '0';
+        }
+        filterForm.setData(next);
         router.get('/neraca', next, { preserveScroll: true, preserveState: true, replace: true });
     };
 
@@ -66,12 +71,13 @@ export default function Neraca({ rows, summary, filters, saldoPembuka }) {
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                             <select
-                                className="rounded-xl border border-border bg-white px-3 py-2 text-sm text-foreground focus:outline-none"
+                                className="rounded-xl border border-border bg-white px-3 py-2 text-sm text-foreground focus:outline-none disabled:opacity-50"
                                 value={filterForm.data.bulan}
+                                disabled={filterForm.data.tahun === '0'}
                                 onChange={(e) => applyFilter('bulan', e.target.value)}
                             >
                                 {BULAN_OPTIONS.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    <option key={opt.value} value={String(opt.value)}>{opt.label}</option>
                                 ))}
                             </select>
                             <select
@@ -80,7 +86,7 @@ export default function Neraca({ rows, summary, filters, saldoPembuka }) {
                                 onChange={(e) => applyFilter('tahun', e.target.value)}
                             >
                                 {buildYearOptions().map((opt) => (
-                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    <option key={opt.value} value={String(opt.value)}>{opt.label}</option>
                                 ))}
                             </select>
                         </div>
@@ -138,7 +144,7 @@ export default function Neraca({ rows, summary, filters, saldoPembuka }) {
                                     {rows.map((row, idx) => (
                                         <tr key={`${row.tipe}-${row.ref_id}-${idx}`} className="hover:bg-muted/20">
                                             <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
-                                                {formatDate(row.tanggal)}
+                                                {formatDate(row.tanggal, { day: '2-digit', month: 'long', year: 'numeric' })}
                                             </td>
                                             <td className="px-4 py-3">
                                                 <div className="flex flex-wrap items-center gap-2">
