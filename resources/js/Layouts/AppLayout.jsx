@@ -219,13 +219,14 @@ export default function AppLayout({ children }) {
                                 <NavLink href="/profile/password" active={current.startsWith('/profile/password')} icon={KeyRound}>
                                     Ganti Password
                                 </NavLink>
-                                <form method="POST" action="/logout">
-                                    <input type="hidden" name="_token" value={csrfToken} />
-                                    <button className="sidebar-link flex w-full items-center gap-2 text-left" type="submit">
-                                        <LogOut className="h-4 w-4 shrink-0 text-muted-foreground" />
-                                        Keluar
-                                    </button>
-                                </form>
+                                <button
+                                    className="sidebar-link flex w-full items-center gap-2 text-left"
+                                    onClick={() => router.post('/logout')}
+                                    type="button"
+                                >
+                                    <LogOut className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                    Keluar
+                                </button>
                             </div>
                         </nav>
                     </aside>
