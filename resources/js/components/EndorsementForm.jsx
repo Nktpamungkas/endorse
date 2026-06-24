@@ -487,7 +487,7 @@ export default function EndorsementForm({
                     >
                         <Select id="financial_mode" name="financial_mode" onChange={(event) => handleFinancialModeChange(event.target.value)} value={form.data.financial_mode}>
                             {Object.entries(financialModeOptions).map(([key, label]) => (
-                                <option key={key} value={key}>{label}</option>
+                                <option key={key} value={key} disabled={!form.data.self_purchase && !NA_MODES.includes(key)}>{label}</option>
                             ))}
                         </Select>
                     </Field>
