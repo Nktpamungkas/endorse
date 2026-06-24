@@ -86,9 +86,9 @@ function Textarea({ className, ...props }) {
     );
 }
 
-function Checkbox({ label, checked, onChange, name }) {
+function Checkbox({ label, checked, onChange, name, highlight }) {
     return (
-        <label className="flex items-start gap-3 rounded-xl border border-border bg-white px-3 py-3 text-sm text-foreground">
+        <label className={cn('flex items-start gap-3 rounded-xl border px-3 py-3 text-sm text-foreground', highlight ? 'border-amber-400 bg-amber-50' : 'border-border bg-white')}>
             <input
                 checked={checked}
                 className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
@@ -483,7 +483,7 @@ export default function EndorsementForm({
                         label="Skema Finansial *"
                         htmlFor="financial_mode"
                         error={form.errors.financial_mode}
-                        hint={!form.data.self_purchase ? 'Saat produk tidak dibeli sendiri, pilihan aktif hanya mode N/A.' : ''}
+                        hint={!form.data.self_purchase ? '⚠ Centang "Saya beli produk sendiri" untuk pilih Reimburse / Barter.' : ''}
                     >
                         <Select id="financial_mode" name="financial_mode" onChange={(event) => handleFinancialModeChange(event.target.value)} value={form.data.financial_mode}>
                             {Object.entries(financialModeOptions).map(([key, label]) => (
@@ -507,7 +507,7 @@ export default function EndorsementForm({
                         disabled={reimburseLocked}
                         hint={form.data.financial_mode === 'reimburse_duluan' ? 'Wajib isi nominal > 0 untuk skema ini.' : 'Akan otomatis 0 untuk skema lain.'}
                     />
-                    <Checkbox label="Saya beli produk sendiri" checked={form.data.self_purchase} name="self_purchase" onChange={handleSelfPurchaseChange} />
+                    <Checkbox label="Saya beli produk sendiri" checked={form.data.self_purchase} name="self_purchase" onChange={handleSelfPurchaseChange} highlight={!form.data.self_purchase} />
                     <CurrencyField
                         label="Modal Produk"
                         name="product_cost"
