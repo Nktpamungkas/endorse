@@ -4,6 +4,8 @@ import { cn } from '@/lib/utils';
 import { formatCurrency, formatCurrencyInput, toCurrencyDigits } from '@/lib/formatters';
 
 const NA_MODES = ['na_dikirim_brand', 'na_tanpa_produk'];
+// Hanya mode reimburse yang butuh self_purchase (beli produk sendiri dulu)
+const REQUIRES_SELF_PURCHASE = ['reimburse_duluan', 'reimburse_bersama_fee'];
 const STATUS_ORDER = [
     'deal_masuk',
     'pembelian_produk',
@@ -333,7 +335,7 @@ export default function EndorsementForm({
     const handleFinancialModeChange = (value) => {
         let nextValue = value;
 
-        if (!form.data.self_purchase && !NA_MODES.includes(value)) {
+        if (!form.data.self_purchase && REQUIRES_SELF_PURCHASE.includes(value)) {
             nextValue = 'na_dikirim_brand';
         }
 
@@ -483,11 +485,11 @@ export default function EndorsementForm({
                         label="Skema Finansial *"
                         htmlFor="financial_mode"
                         error={form.errors.financial_mode}
-                        hint={!form.data.self_purchase ? '⚠ Centang "Saya beli produk sendiri" untuk pilih Reimburse / Barter.' : ''}
+                        hint={!form.data.self_purchase ? '⚠ Centang "Saya beli produk sendiri" untuk pilih skema Reimburse.' : ''}
                     >
                         <Select id="financial_mode" name="financial_mode" onChange={(event) => handleFinancialModeChange(event.target.value)} value={form.data.financial_mode}>
                             {Object.entries(financialModeOptions).map(([key, label]) => (
-                                <option key={key} value={key} disabled={!form.data.self_purchase && !NA_MODES.includes(key)}>{label}</option>
+                                <option key={key} value={key} disabled={!form.data.self_purchase && REQUIRES_SELF_PURCHASE.includes(key)}>{label}</option>
                             ))}
                         </Select>
                     </Field>
