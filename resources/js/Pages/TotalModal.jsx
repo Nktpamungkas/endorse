@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useForm } from '@inertiajs/react';
 import { CircleDollarSign, Package2, ReceiptText, TrendingUp } from 'lucide-react';
-import Pagination from '@/components/Pagination';
+import Pagination from '@/Components/Pagination';
 import AppLayout from '@/Layouts/AppLayout';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 

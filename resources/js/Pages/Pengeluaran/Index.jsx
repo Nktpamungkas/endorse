@@ -1,5 +1,5 @@
 import React from 'react';
-import CashflowPage from '@/components/CashflowPage';
+import CashflowPage from '@/Components/CashflowPage';
 
 export default function PengeluaranIndex(props) {
     return (

@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/Components/ui/button';
 
 const rootElement = document.getElementById('shadcn-demo');
 

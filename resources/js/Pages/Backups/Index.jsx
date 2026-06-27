@@ -2,7 +2,7 @@ import React from 'react';
 import { router, useForm } from '@inertiajs/react';
 import { CalendarDays, Clock3, Download, FileArchive, Play, RefreshCw, ShieldCheck, TriangleAlert } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
-import Pagination from '@/components/Pagination';
+import Pagination from '@/Components/Pagination';
 import { formatBytes, formatDate } from '@/lib/formatters';
 
 export default function DatabaseBackupsIndex({ setting, dayOptions, logs, summary }) {

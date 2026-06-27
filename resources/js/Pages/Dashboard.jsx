@@ -17,7 +17,7 @@ import {
     Zap,
 } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
-import Pagination from '@/components/Pagination';
+import Pagination from '@/Components/Pagination';
 import { cn } from '@/lib/utils';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 

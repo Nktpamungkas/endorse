@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link, router, useForm } from '@inertiajs/react';
-import Pagination from '@/components/Pagination';
+import Pagination from '@/Components/Pagination';
 import AppLayout from '@/Layouts/AppLayout';
 import { formatCurrency, formatCurrencyInput, formatDate, toCurrencyDigits } from '@/lib/formatters';
 
