@@ -6,27 +6,16 @@ import { formatCurrency, formatCurrencyInput, toCurrencyDigits } from '@/lib/for
 const NA_MODES = ['na_dikirim_brand', 'na_tanpa_produk'];
 // Hanya mode reimburse yang butuh self_purchase (beli produk sendiri dulu)
 const REQUIRES_SELF_PURCHASE = ['reimburse_duluan', 'reimburse_bersama_fee'];
-const STATUS_ORDER = [
-    'deal_masuk',
-    'pembelian_produk',
-    'pembuatan_draft',
-    'menunggu_draft_ok',
-    'revisi',
-    'menunggu_posting',
-    'menunggu_insight',
-    'menunggu_payment',
-    'selesai',
-];
 const STATUS_FIELD_HINTS = {
-    deal_masuk: 'Pilih saat deal baru masuk dan campaign mulai dicatat.',
-    pembelian_produk: 'Pilih saat produk sedang dibeli atau masih menunggu dikirim.',
-    pembuatan_draft: 'Pilih saat konten masih dalam proses dibuat.',
-    menunggu_draft_ok: 'Pilih saat draft sudah dikirim dan menunggu persetujuan brand.',
-    revisi: 'Pilih saat ada revisi dari brand.',
-    menunggu_posting: 'Pilih saat konten sudah siap tayang.',
-    menunggu_insight: 'Pilih saat konten sudah tayang dan tinggal kirim laporan.',
-    menunggu_payment: 'Pilih saat pekerjaan selesai dan tinggal menunggu pembayaran.',
-    selesai: 'Pilih saat campaign sudah selesai.',
+    deal_masuk: 'Deal baru masuk dan campaign mulai dicatat.',
+    pembelian_produk: 'Produk sedang dibeli atau menunggu dikirim.',
+    pembuatan_draft: 'Konten masih dalam proses dibuat.',
+    menunggu_draft_ok: 'Draft sudah dikirim, menunggu persetujuan brand.',
+    revisi: 'Ada revisi dari brand.',
+    menunggu_posting: 'Konten sudah siap tayang.',
+    menunggu_insight: 'Konten sudah tayang, tinggal kirim laporan.',
+    menunggu_payment: 'Pekerjaan selesai, tinggal menunggu pembayaran.',
+    selesai: 'Campaign sudah selesai.',
 };
 
 function FieldError({ message }) {
@@ -123,48 +112,37 @@ function CurrencyField({ label, name, value, onChange, error, hint, disabled, cl
     );
 }
 
-function addDaysISODate(value, days) {
-    if (!value) {
-        return '';
-    }
+// Selektor tahap (status) ala Kanban — klik untuk pilih, TANPA auto-inferensi dari field lain.
+function StageStrip({ statusOptions, value, onChange }) {
+    const keys = Object.keys(statusOptions);
+    const currentIndex = keys.indexOf(value);
 
-    const date = new Date(`${value}T00:00:00`);
-    if (Number.isNaN(date.getTime())) {
-        return '';
-    }
+    return (
+        <div className="flex gap-2 overflow-x-auto pb-1">
+            {keys.map((key, index) => {
+                const active = key === value;
+                const done = currentIndex > -1 && index < currentIndex;
 
-    date.setDate(date.getDate() + days);
-
-    return [
-        date.getFullYear(),
-        String(date.getMonth() + 1).padStart(2, '0'),
-        String(date.getDate()).padStart(2, '0'),
-    ].join('-');
-}
-
-function getTodayISODate() {
-    const date = new Date();
-
-    return [
-        date.getFullYear(),
-        String(date.getMonth() + 1).padStart(2, '0'),
-        String(date.getDate()).padStart(2, '0'),
-    ].join('-');
-}
-
-function liftStatus(current, target) {
-    const currentRank = STATUS_ORDER.indexOf(current);
-    const targetRank = STATUS_ORDER.indexOf(target);
-
-    if (targetRank === -1) {
-        return current;
-    }
-
-    if (currentRank === -1 || currentRank < targetRank) {
-        return target;
-    }
-
-    return current;
+                return (
+                    <button
+                        key={key}
+                        type="button"
+                        onClick={() => onChange(key)}
+                        className={cn(
+                            'shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition',
+                            active
+                                ? 'border-primary bg-primary text-primary-foreground'
+                                : done
+                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                    : 'border-border bg-white text-muted-foreground hover:bg-muted',
+                        )}
+                    >
+                        {index + 1}. {statusOptions[key]}
+                    </button>
+                );
+            })}
+        </div>
+    );
 }
 
 function amount(value) {
@@ -195,9 +173,6 @@ export default function EndorsementForm({
             ? endorsement.financial_mode
             : 'reimburse_duluan',
     );
-    const csrfToken = typeof document !== 'undefined'
-        ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
-        : '';
 
     const form = useForm({
         brand_name: endorsement.brand_name ?? '',
@@ -209,111 +184,23 @@ export default function EndorsementForm({
         product_ordered_at: endorsement.product_ordered_at ?? '',
         product_received_at: endorsement.product_received_at ?? '',
         draft_deadline: endorsement.draft_deadline ?? '',
-        storyline_required: Boolean(endorsement.storyline_required),
-        storyline_done: Boolean(endorsement.storyline_done),
-        drive_uploaded: Boolean(endorsement.drive_uploaded),
-        approved_at: endorsement.approved_at ?? '',
-        posting_date: endorsement.posting_date ?? '',
-        posted_at: endorsement.posted_at ?? '',
-        insight_due_at: endorsement.insight_due_at ?? '',
-        insight_sent_at: endorsement.insight_sent_at ?? '',
-        boostcode_required: Boolean(endorsement.boostcode_required),
-        boostcode_duration_days: endorsement.boostcode_duration_days ?? '',
         self_purchase: Boolean(endorsement.self_purchase),
-        checkout_proof: null,
         financial_mode: endorsement.financial_mode ?? 'reimburse_duluan',
         fee_amount: toCurrencyDigits(endorsement.fee_amount),
         reimburse_amount: toCurrencyDigits(endorsement.reimburse_amount),
         product_cost: toCurrencyDigits(endorsement.product_cost),
-        other_cost: toCurrencyDigits(endorsement.other_cost),
         payment_status: endorsement.payment_status ?? 'belum_bayar',
-        payment_due_date: endorsement.payment_due_date ?? '',
-        payment_received_date: endorsement.payment_received_date ?? '',
         notes: endorsement.notes ?? '',
     });
 
     const isEdit = mode === 'edit';
     const reimburseLocked = !form.data.self_purchase || ['reimburse_bersama_fee', 'free_barter', ...NA_MODES].includes(form.data.financial_mode);
     const productLocked = !form.data.self_purchase;
-    const checkoutDisabled = !form.data.self_purchase;
-    const actionUrl = isEdit ? `/endorsements/${endorsement.id}` : '/endorsements';
     const totalIncome = amount(form.data.fee_amount) + amount(form.data.reimburse_amount);
-    const totalCost = amount(form.data.product_cost) + amount(form.data.other_cost);
+    const totalCost = amount(form.data.product_cost);
     const netProfit = totalIncome - totalCost;
 
     const setData = (key, value) => form.setData(key, value);
-
-    const applyStatusFromField = (key, value, targetStatus) => {
-        form.setData((data) => ({
-            ...data,
-            [key]: value,
-            status: value ? liftStatus(data.status, targetStatus) : data.status,
-        }));
-    };
-
-    const handleProductOrderedChange = (value) => {
-        applyStatusFromField('product_ordered_at', value, 'pembelian_produk');
-    };
-
-    const handleProductReceivedChange = (value) => {
-        applyStatusFromField('product_received_at', value, 'pembuatan_draft');
-    };
-
-    const handleStorylineDoneChange = (checked) => {
-        form.setData((data) => ({
-            ...data,
-            storyline_done: checked,
-            status: checked ? liftStatus(data.status, 'pembuatan_draft') : data.status,
-        }));
-    };
-
-    const handleDriveUploadedChange = (checked) => {
-        form.setData((data) => ({
-            ...data,
-            drive_uploaded: checked,
-            status: checked ? liftStatus(data.status, 'menunggu_draft_ok') : data.status,
-        }));
-    };
-
-    const handleApprovedAtChange = (value) => {
-        applyStatusFromField('approved_at', value, 'menunggu_posting');
-    };
-
-    const handlePostedAtChange = (value) => {
-        form.setData((data) => ({
-            ...data,
-            posted_at: value,
-            insight_due_at: value && !data.insight_due_at ? addDaysISODate(value, 7) : data.insight_due_at,
-            status: value ? liftStatus(data.status, 'menunggu_insight') : data.status,
-        }));
-    };
-
-    const handleInsightSentChange = (value) => {
-        form.setData((data) => ({
-            ...data,
-            insight_sent_at: value,
-            payment_due_date: value && !data.payment_due_date ? addDaysISODate(value, 14) : data.payment_due_date,
-            status: value ? liftStatus(data.status, 'menunggu_payment') : data.status,
-        }));
-    };
-
-    const handlePaymentStatusChange = (value) => {
-        form.setData((data) => ({
-            ...data,
-            payment_status: value,
-            payment_received_date: value === 'lunas' && !data.payment_received_date ? getTodayISODate() : data.payment_received_date,
-            status: value === 'lunas' ? 'selesai' : data.status,
-        }));
-    };
-
-    const handlePaymentReceivedChange = (value) => {
-        form.setData((data) => ({
-            ...data,
-            payment_received_date: value,
-            payment_status: value ? 'lunas' : data.payment_status,
-            status: value ? 'selesai' : data.status,
-        }));
-    };
 
     const handleSelfPurchaseChange = (checked) => {
         const next = { self_purchase: checked };
@@ -324,7 +211,6 @@ export default function EndorsementForm({
             }
             next.reimburse_amount = '';
             next.product_cost = '';
-            next.checkout_proof = null;
         } else if (NA_MODES.includes(form.data.financial_mode)) {
             next.financial_mode = lastManualFinancialMode.current || 'reimburse_duluan';
         }
@@ -351,17 +237,13 @@ export default function EndorsementForm({
         }));
     };
 
-    const submitData = () => {
-        const options = {
-            forceFormData: true,
-            preserveScroll: true,
-        };
+    const handleSubmit = (event) => {
+        event.preventDefault();
+
+        const options = { preserveScroll: true };
 
         if (isEdit) {
-            form.transform((data) => ({
-                ...data,
-                _method: 'put',
-            }));
+            form.transform((data) => ({ ...data, _method: 'put' }));
             form.post(`/endorsements/${endorsement.id}`, options);
 
             return;
@@ -370,18 +252,21 @@ export default function EndorsementForm({
         form.post('/endorsements', options);
     };
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        submitData();
-    };
-
     return (
-        <form action={actionUrl} encType="multipart/form-data" method="POST" onSubmit={handleSubmit} className="space-y-5 pb-6">
-            <input type="hidden" name="_token" value={csrfToken} />
-            {isEdit && <input type="hidden" name="_method" value="put" />}
+        <form onSubmit={handleSubmit} className="space-y-5 pb-6">
+            <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
+                <h2 className="text-base font-semibold text-foreground">Tahap Pekerjaan</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Pilih tahap saat ini. Tahap tidak berubah otomatis — kamu yang kendalikan.</p>
+                <div className="mt-4">
+                    <StageStrip statusOptions={statusOptions} value={form.data.status} onChange={(value) => setData('status', value)} />
+                    <p className="mt-2 text-xs text-muted-foreground">{STATUS_FIELD_HINTS[form.data.status]}</p>
+                    <FieldError message={form.errors.status} />
+                </div>
+            </section>
+
             <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
                 <h2 className="text-base font-semibold text-foreground">Informasi Campaign</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Isi identitas campaign dan tahap pekerjaan saat ini.</p>
+                <p className="mt-1 text-sm text-muted-foreground">Identitas campaign dan tanggal-tanggal kunci.</p>
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <Field label="Nama Brand *" htmlFor="brand_name" error={form.errors.brand_name} className="xl:col-span-2">
                         <Input id="brand_name" name="brand_name" onChange={(event) => setData('brand_name', event.target.value)} placeholder="Contoh: Wardah" value={form.data.brand_name} />
@@ -403,21 +288,14 @@ export default function EndorsementForm({
                             ))}
                         </Select>
                     </Field>
-                    <Field label="Status *" htmlFor="status" error={form.errors.status} hint={STATUS_FIELD_HINTS[form.data.status]}>
-                        <Select id="status" name="status" onChange={(event) => setData('status', event.target.value)} value={form.data.status}>
-                            {Object.entries(statusOptions).map(([key, label]) => (
-                                <option key={key} value={key}>{label}</option>
-                            ))}
-                        </Select>
-                    </Field>
                     <Field label="Tanggal Deal" htmlFor="deal_date" error={form.errors.deal_date}>
                         <Input id="deal_date" name="deal_date" onChange={(event) => setData('deal_date', event.target.value)} type="date" value={form.data.deal_date} />
                     </Field>
                     <Field label="Order Produk" htmlFor="product_ordered_at" error={form.errors.product_ordered_at}>
-                        <Input id="product_ordered_at" name="product_ordered_at" onChange={(event) => handleProductOrderedChange(event.target.value)} type="date" value={form.data.product_ordered_at} />
+                        <Input id="product_ordered_at" name="product_ordered_at" onChange={(event) => setData('product_ordered_at', event.target.value)} type="date" value={form.data.product_ordered_at} />
                     </Field>
                     <Field label="Produk Diterima" htmlFor="product_received_at" error={form.errors.product_received_at}>
-                        <Input id="product_received_at" name="product_received_at" onChange={(event) => handleProductReceivedChange(event.target.value)} type="date" value={form.data.product_received_at} />
+                        <Input id="product_received_at" name="product_received_at" onChange={(event) => setData('product_received_at', event.target.value)} type="date" value={form.data.product_received_at} />
                     </Field>
                     <Field label="Deadline Draft" htmlFor="draft_deadline" error={form.errors.draft_deadline}>
                         <Input id="draft_deadline" name="draft_deadline" onChange={(event) => setData('draft_deadline', event.target.value)} type="date" value={form.data.draft_deadline} />
@@ -426,51 +304,8 @@ export default function EndorsementForm({
             </section>
 
             <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
-                <h2 className="text-base font-semibold text-foreground">Checklist Pekerjaan</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Centang dan isi tanggal yang membantu memantau progress konten.</p>
-                <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    <Checkbox label="Perlu storyline dulu" checked={form.data.storyline_required} name="storyline_required" onChange={(checked) => setData('storyline_required', checked)} />
-                    <Checkbox label="Storyline sudah selesai" checked={form.data.storyline_done} name="storyline_done" onChange={handleStorylineDoneChange} />
-                    <Checkbox label="Draft/revisi sudah di Google Drive" checked={form.data.drive_uploaded} name="drive_uploaded" onChange={handleDriveUploadedChange} />
-                    <Checkbox label="Brand minta boostcode" checked={form.data.boostcode_required} name="boostcode_required" onChange={(checked) => setData('boostcode_required', checked)} />
-
-                    <Field label="Tanggal Approved" htmlFor="approved_at" error={form.errors.approved_at}>
-                        <Input id="approved_at" name="approved_at" onChange={(event) => handleApprovedAtChange(event.target.value)} type="date" value={form.data.approved_at} />
-                    </Field>
-                    <Field label="Tanggal Posting (Rencana)" htmlFor="posting_date" error={form.errors.posting_date}>
-                        <Input id="posting_date" name="posting_date" onChange={(event) => setData('posting_date', event.target.value)} type="date" value={form.data.posting_date} />
-                    </Field>
-                    <Field label="Tanggal Sudah Posting" htmlFor="posted_at" error={form.errors.posted_at} hint="Opsional. Isi jika konten sudah tayang.">
-                        <Input id="posted_at" name="posted_at" onChange={(event) => handlePostedAtChange(event.target.value)} type="date" value={form.data.posted_at} />
-                    </Field>
-                    <Field label="Laporan Jatuh Tempo" htmlFor="insight_due_at" error={form.errors.insight_due_at} hint="Isi jika brand memang minta laporan.">
-                        <Input id="insight_due_at" name="insight_due_at" onChange={(event) => setData('insight_due_at', event.target.value)} type="date" value={form.data.insight_due_at} />
-                    </Field>
-                    <Field label="Tanggal Kirim Laporan" htmlFor="insight_sent_at" error={form.errors.insight_sent_at}>
-                        <Input id="insight_sent_at" name="insight_sent_at" onChange={(event) => handleInsightSentChange(event.target.value)} type="date" value={form.data.insight_sent_at} />
-                    </Field>
-                    <Field
-                        label="Durasi Boostcode (hari)"
-                        htmlFor="boostcode_duration_days"
-                        error={form.errors.boostcode_duration_days}
-                        hint="Wajib saat boostcode dicentang."
-                    >
-                        <Input
-                            id="boostcode_duration_days"
-                            name="boostcode_duration_days"
-                            min="7"
-                            max="365"
-                            onChange={(event) => setData('boostcode_duration_days', event.target.value)}
-                            type="number"
-                            value={form.data.boostcode_duration_days}
-                        />
-                    </Field>
-                </div>
-            </section>
-
-            <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
                 <h2 className="text-base font-semibold text-foreground">Keuangan</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Catat fee, reimburse, modal, dan status pembayaran agar ringkasan tetap akurat.</p>
+                <p className="mt-1 text-sm text-muted-foreground">Fee, reimburse, modal, dan status pembayaran.</p>
                 <div className="mt-4 grid grid-cols-1 gap-3 rounded-xl bg-muted/30 p-3 sm:grid-cols-3">
                     <SummaryMetric label="Pendapatan" value={formatCurrency(totalIncome)} />
                     <SummaryMetric label="Modal" value={formatCurrency(totalCost)} />
@@ -518,42 +353,12 @@ export default function EndorsementForm({
                         error={form.errors.product_cost}
                         disabled={productLocked}
                     />
-                    <CurrencyField
-                        label="Biaya Lain"
-                        name="other_cost"
-                        value={form.data.other_cost}
-                        onChange={(value) => setData('other_cost', value)}
-                        error={form.errors.other_cost}
-                    />
-                    <Field label="Bukti Pembelian / Checkout" htmlFor="checkout_proof" error={form.errors.checkout_proof} hint="JPG, PNG, WEBP, atau PDF.">
-                        <Input
-                            id="checkout_proof"
-                            disabled={checkoutDisabled}
-                            name="checkout_proof"
-                            onChange={(event) => setData('checkout_proof', event.target.files?.[0] ?? null)}
-                            type="file"
-                        />
-                        {isEdit && endorsement.checkout_proof_url && (
-                            <p className="mt-2 text-xs text-muted-foreground">
-                                File saat ini:{' '}
-                                <a className="font-semibold text-primary hover:underline" href={endorsement.checkout_proof_url} target="_blank" rel="noreferrer">
-                                    lihat file
-                                </a>
-                            </p>
-                        )}
-                    </Field>
                     <Field label="Status Pembayaran *" htmlFor="payment_status" error={form.errors.payment_status}>
-                        <Select id="payment_status" name="payment_status" onChange={(event) => handlePaymentStatusChange(event.target.value)} value={form.data.payment_status}>
+                        <Select id="payment_status" name="payment_status" onChange={(event) => setData('payment_status', event.target.value)} value={form.data.payment_status}>
                             {Object.entries(paymentStatusOptions).map(([key, label]) => (
                                 <option key={key} value={key}>{label}</option>
                             ))}
                         </Select>
-                    </Field>
-                    <Field label="Jatuh Tempo Payment" htmlFor="payment_due_date" error={form.errors.payment_due_date}>
-                        <Input id="payment_due_date" name="payment_due_date" onChange={(event) => setData('payment_due_date', event.target.value)} type="date" value={form.data.payment_due_date} />
-                    </Field>
-                    <Field label="Tanggal Payment Masuk" htmlFor="payment_received_date" error={form.errors.payment_received_date}>
-                        <Input id="payment_received_date" name="payment_received_date" onChange={(event) => handlePaymentReceivedChange(event.target.value)} type="date" value={form.data.payment_received_date} />
                     </Field>
                     <Field label="Catatan" htmlFor="notes" error={form.errors.notes} className="md:col-span-2 xl:col-span-4">
                         <Textarea id="notes" name="notes" onChange={(event) => setData('notes', event.target.value)} placeholder="Contoh: brief khusus, PIC brand, atau catatan revisi." rows="4" value={form.data.notes} />

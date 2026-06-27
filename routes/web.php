@@ -5,7 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DatabaseBackupController;
 use App\Http\Controllers\EndorsementController;
 use App\Http\Controllers\EndorsementRevisionController;
-use App\Http\Controllers\LandingController;
+use App\Http\Controllers\KanbanColumnController;
 use App\Http\Controllers\NeracaController;
 use App\Http\Controllers\PemasukanController;
 use App\Http\Controllers\PengeluaranController;
@@ -15,7 +15,7 @@ use App\Http\Controllers\UserManageController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
-Route::get('/', LandingController::class)->name('landing');
+Route::redirect('/', '/login');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login.form');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login.attempt');
 
@@ -45,7 +45,15 @@ Route::middleware('single.auth')->group(function (): void {
         ->name('endorsements.revisions.destroy');
     Route::post('/endorsements/{endorsement}/status', [EndorsementController::class, 'updateStatus'])
         ->name('endorsements.status.update');
+    Route::patch('/endorsements/{endorsement}/quick', [EndorsementController::class, 'quickUpdate'])
+        ->name('endorsements.quick-update');
+    Route::post('/endorsements-quick', [EndorsementController::class, 'quickStore'])
+        ->name('endorsements.quick-store');
     Route::get('/endorsements-export', [EndorsementController::class, 'export'])->name('endorsements.export');
+    Route::post('/kanban-columns', [KanbanColumnController::class, 'store'])->name('kanban.columns.store');
+    Route::patch('/kanban-columns/{slug}/rename', [KanbanColumnController::class, 'rename'])->name('kanban.columns.rename');
+    Route::post('/kanban-columns/reorder', [KanbanColumnController::class, 'reorder'])->name('kanban.columns.reorder');
+    Route::delete('/kanban-columns/{slug}', [KanbanColumnController::class, 'destroy'])->name('kanban.columns.destroy');
     Route::get('/users', [UserManageController::class, 'index'])->name('users.index');
     Route::post('/users', [UserManageController::class, 'store'])->name('users.store');
     Route::post('/users/{user}', [UserManageController::class, 'update'])->name('users.update');

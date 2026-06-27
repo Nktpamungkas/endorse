@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useForm } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
-import Pagination from '@/components/Pagination';
 import { formatDate } from '@/lib/formatters';
 
 export default function EndorsementsTrashed({ endorsements, filters }) {
@@ -74,12 +73,12 @@ export default function EndorsementsTrashed({ endorsements, filters }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
-                                {endorsements.data.length === 0 && (
+                                {endorsements.length === 0 && (
                                     <tr>
                                         <td colSpan={6} className="py-6 text-center text-muted-foreground">Belum ada data yang dihapus.</td>
                                     </tr>
                                 )}
-                                {endorsements.data.map((item) => (
+                                {endorsements.map((item) => (
                                     <tr key={item.id} className="transition hover:bg-muted/40">
                                         <td className="py-3 pr-4">
                                             <div className="font-semibold text-foreground">{item.brand_name}</div>
@@ -105,12 +104,12 @@ export default function EndorsementsTrashed({ endorsements, filters }) {
                     </div>
 
                     <div className="grid gap-3 lg:hidden">
-                        {endorsements.data.length === 0 && (
+                        {endorsements.length === 0 && (
                             <div className="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
                                 Belum ada data yang dihapus.
                             </div>
                         )}
-                        {endorsements.data.map((item) => (
+                        {endorsements.map((item) => (
                             <article key={item.id} className="rounded-2xl border border-border bg-white p-4 shadow-sm">
                                 <div className="flex items-start justify-between gap-3">
                                     <div>
@@ -131,10 +130,6 @@ export default function EndorsementsTrashed({ endorsements, filters }) {
                                 </Link>
                             </article>
                         ))}
-                    </div>
-
-                    <div className="mt-4">
-                        <Pagination links={endorsements.links} />
                     </div>
                 </section>
             </div>

@@ -11,7 +11,6 @@ import {
     ListChecks,
     LogOut,
     Menu,
-    PlusCircle,
     UserCog,
     Wallet,
     WalletCards,
@@ -40,7 +39,6 @@ export default function AppLayout({ children }) {
     const currentUser = props.auth?.user ?? null;
     const isMaster = currentUser?.role === 'master';
     const isEndorseDataActive = current.startsWith('/endorsements')
-        && current !== '/endorsements/create'
         && !current.startsWith('/endorsements-deleted');
     const flash = props.flash ?? {};
     const errors = props.errors ?? {};
@@ -70,12 +68,6 @@ export default function AppLayout({ children }) {
                     <div className="flex items-center gap-2">
                         <Link href="/dashboard" className="text-xs font-semibold text-foreground">
                             Dashboard
-                        </Link>
-                        <Link
-                            href="/endorsements/create"
-                            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
-                        >
-                            + Tambah
                         </Link>
                     </div>
                 </div>
@@ -112,9 +104,6 @@ export default function AppLayout({ children }) {
                                     onClick={() => setOpen(false)}
                                 >
                                     Daftar Endorse
-                                </NavLink>
-                                <NavLink href="/endorsements/create" active={current === '/endorsements/create'} icon={PlusCircle} onClick={() => setOpen(false)}>
-                                    Tambah Endorse
                                 </NavLink>
                                 <NavLink href="/total-modal" active={current.startsWith('/total-modal')} icon={WalletCards} onClick={() => setOpen(false)}>
                                     Total Modal
@@ -180,9 +169,6 @@ export default function AppLayout({ children }) {
                                 </NavLink>
                                 <NavLink href="/endorsements" active={isEndorseDataActive} icon={ListChecks}>
                                     Daftar Endorse
-                                </NavLink>
-                                <NavLink href="/endorsements/create" active={current === '/endorsements/create'} icon={PlusCircle}>
-                                    Tambah Endorse
                                 </NavLink>
                                 <NavLink href="/total-modal" active={current.startsWith('/total-modal')} icon={WalletCards}>
                                     Total Modal

@@ -72,12 +72,6 @@
                         Masuk
                     </button>
                 </form>
-
-                <div class="mt-3 text-center">
-                    <a href="{{ route('landing') }}" class="text-decoration-none" style="color: hsl(var(--primary));">
-                        &larr; Kembali ke beranda
-                    </a>
-                </div>
             </div>
         </div>
     </div>

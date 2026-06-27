@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Http\Requests\EndorsementRevisionRequest;
 use App\Models\Endorsement;
 use App\Models\EndorsementRevision;
+use App\Services\EndorsementRevisionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 
 class EndorsementRevisionController extends Controller
 {
+    public function __construct(private readonly EndorsementRevisionService $service) {}
+
     public function store(EndorsementRevisionRequest $request, Endorsement $endorsement): RedirectResponse
     {
         $this->assertOwnership($endorsement);
@@ -19,20 +22,7 @@ class EndorsementRevisionController extends Controller
         $payload['endorsement_id'] = $endorsement->id;
         $payload['user_id'] = Auth::id();
 
-        $endorsement->revisions()->create($payload);
-
-        if ($payload['uploaded_to_drive']) {
-            $endorsement->update(['drive_uploaded' => true]);
-        }
-
-        if ($payload['is_approved']) {
-            $endorsement->update([
-                'approved_at' => $payload['revision_date'],
-                'status' => in_array($endorsement->status, ['revisi', 'menunggu_draft_ok'], true)
-                    ? 'menunggu_posting'
-                    : $endorsement->status,
-            ]);
-        }
+        $this->service->store($endorsement, $payload);
 
         return redirect()->route('endorsements.show', $endorsement)->with('success', 'Revisi berhasil disimpan.');
     }
@@ -40,8 +30,7 @@ class EndorsementRevisionController extends Controller
     public function destroy(Endorsement $endorsement, EndorsementRevision $revision): RedirectResponse
     {
         $this->assertOwnership($endorsement);
-        abort_if($revision->endorsement_id !== $endorsement->id, 404);
-        $revision->delete();
+        $this->service->delete($endorsement, $revision);
 
         return redirect()->route('endorsements.show', $endorsement)->with('success', 'Revisi berhasil dihapus.');
     }

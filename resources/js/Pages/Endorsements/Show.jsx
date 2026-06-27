@@ -4,10 +4,40 @@ import { X } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 
+function StageProgress({ statusOptions, current }) {
+    const keys = Object.keys(statusOptions);
+    const currentIndex = keys.indexOf(current);
+
+    return (
+        <div className="flex gap-2 overflow-x-auto pb-1">
+            {keys.map((key, index) => {
+                const active = key === current;
+                const done = currentIndex > -1 && index < currentIndex;
+
+                return (
+                    <div
+                        key={key}
+                        className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold ${
+                            active
+                                ? 'border-primary bg-primary text-primary-foreground'
+                                : done
+                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                    : 'border-border bg-white text-muted-foreground'
+                        }`}
+                    >
+                        {index + 1}. {statusOptions[key]}
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
 export default function EndorsementsShow({
     endorsement,
     revisions,
     logs,
+    statusOptions = {},
     isDeletedView = false,
 }) {
     const revisionForm = useForm({
@@ -100,6 +130,20 @@ export default function EndorsementsShow({
                         <p>Dihapus pada: {endorsement.deleted_at ? formatDate(endorsement.deleted_at, { hour: '2-digit', minute: '2-digit' }) : '-'}</p>
                         <p>Dihapus oleh: {endorsement.deleted_by_name || '-'}</p>
                     </div>
+                )}
+
+                {!endorsement.trashed && Object.keys(statusOptions).length > 0 && (
+                    <section className="rounded-3xl border border-border bg-white p-5 shadow-sm">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-base font-semibold text-foreground">Tahap Saat Ini</h2>
+                            <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                                {endorsement.status_label}
+                            </span>
+                        </div>
+                        <div className="mt-4">
+                            <StageProgress statusOptions={statusOptions} current={endorsement.status} />
+                        </div>
+                    </section>
                 )}
 
                 <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
