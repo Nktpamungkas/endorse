@@ -16,12 +16,12 @@ export default defineConfig({
             '@': path.resolve(__dirname, 'resources/js'),
         },
     },
-    server: {
-        hmr: {
-            host: 'nale-hanan.my.id',
-        },
-        watch: {
-            ignored: ['**/storage/framework/views/**'],
-        },
-    },
+    // server: {
+    //     hmr: {
+    //         host: 'nale-hanan.my.id',
+    //     },
+    //     watch: {
+    //         ignored: ['**/storage/framework/views/**'],
+    //     },
+    // },
 });
