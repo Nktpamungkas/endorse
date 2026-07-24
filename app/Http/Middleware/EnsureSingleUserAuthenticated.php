@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
+use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureSingleUserAuthenticated
@@ -18,7 +19,7 @@ class EnsureSingleUserAuthenticated
     public function handle(Request $request, Closure $next): Response
     {
         if (! Auth::check()) {
-            return redirect()->route('login.form');
+            return Inertia::location(redirect()->route('login.form'));
         }
 
         $user = Auth::user();
@@ -28,9 +29,9 @@ class EnsureSingleUserAuthenticated
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
-            return redirect()->route('login.form')->withErrors([
+            return Inertia::location(redirect()->route('login.form')->withErrors([
                 'username' => 'Sesi Anda telah diakhiri (login baru atau admin memutus sesi). Silakan login ulang.',
-            ]);
+            ]));
         }
 
         if (! $sessionCode && $user->session_code) {
@@ -40,14 +41,14 @@ class EnsureSingleUserAuthenticated
 
         if (! $user->active) {
             Auth::logout();
-            return redirect()->route('login.form')->withErrors(['username' => 'Akun dinonaktifkan.']);
+            return Inertia::location(redirect()->route('login.form')->withErrors(['username' => 'Akun dinonaktifkan.']));
         }
 
         if ($user->role === 'trial' && $user->trial_ends_at && Carbon::parse($user->trial_ends_at)->isPast()) {
             Auth::logout();
-            return redirect()->route('login.form')->withErrors([
+            return Inertia::location(redirect()->route('login.form')->withErrors([
                 'username' => 'Masa trial Anda telah berakhir. Silakan lanjut ke paket berbayar untuk memperpanjang akses.',
-            ]);
+            ]));
         }
 
         return $next($request);

@@ -51,7 +51,8 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login.form')->with('success', 'Anda telah logout.');
+        // ponytail: login.form itu Blade biasa, bukan Inertia page — location() supaya SPA full-reload alih-alih render modal
+        return Inertia::location(redirect()->route('login.form')->with('success', 'Anda telah logout.'));
     }
 
     public function showPasswordForm(): Response
